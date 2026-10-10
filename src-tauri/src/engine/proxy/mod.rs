@@ -15,6 +15,7 @@ use tokio::time::timeout;
 pub use desync::Method;
 pub use dns::Resolver;
 
+pub const PREFERRED_PORT: u16 = 18080;
 const HEAD_LIMIT: usize = 16 * 1024;
 const HELLO_LIMIT: usize = 64 * 1024;
 const IO_TIMEOUT: Duration = Duration::from_secs(10);
@@ -27,7 +28,10 @@ pub struct Server {
 
 impl Server {
     pub async fn start(method: Method, resolver: Arc<Resolver>) -> io::Result<Self> {
-        let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?;
+        let listener = match TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], PREFERRED_PORT))).await {
+            Ok(listener) => listener,
+            Err(_) => TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?,
+        };
         let port = listener.local_addr()?.port();
         let method = Arc::new(method);
         let task = tokio::spawn(async move {

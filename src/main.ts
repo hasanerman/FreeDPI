@@ -3,7 +3,6 @@ import { format, languages, resolveLanguage, strings } from "./i18n";
 import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status, UpdateInfo } from "./types";
 
 const REGIONS: Region[] = ["auto", "turkey", "russia", "other"];
-const CHECK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
 const REMOVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" /></svg>';
 const DOMAIN = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/;
 
@@ -15,6 +14,7 @@ const ui = {
   title: byId("status-title"),
   detail: byId("status-detail"),
   profile: byId("status-profile"),
+  discord: byId<HTMLButtonElement>("btn-discord"),
   autostartLabel: byId("lbl-autostart"),
   autostart: byId<HTMLInputElement>("chk-autostart"),
   openSettings: byId<HTMLButtonElement>("btn-settings"),
@@ -23,16 +23,17 @@ const ui = {
   sheet: byId("sheet"),
   settingsTitle: byId("lbl-settings"),
   pending: byId("lbl-pending"),
-  regionTitle: byId("lbl-region"),
-  region: byId("region"),
+  generalTitle: byId("lbl-general"),
+  regionLabel: byId("lbl-region"),
+  region: byId<HTMLSelectElement>("region"),
+  languageLabel: byId("lbl-language"),
+  language: byId<HTMLSelectElement>("language"),
   sitesTitle: byId("lbl-sites"),
   sitesHint: byId("lbl-sites-hint"),
-  targets: byId("targets"),
-  custom: byId("custom"),
+  siteRows: byId("site-rows"),
   addForm: byId<HTMLFormElement>("add-form"),
   addInput: byId<HTMLInputElement>("add-input"),
-  languageTitle: byId("lbl-language"),
-  language: byId("language"),
+  addButton: byId<HTMLButtonElement>("btn-add"),
   version: byId("version"),
   quit: byId<HTMLButtonElement>("btn-quit"),
   update: byId("update"),
@@ -40,35 +41,12 @@ const ui = {
   updateButton: byId<HTMLButtonElement>("btn-update"),
 };
 
-let update: UpdateInfo | null = null;
-let updating = false;
-
-function renderUpdate() {
-  const s = text();
-  ui.update.hidden = update === null;
-  if (!update) return;
-  ui.updateText.textContent = updating ? s.updating : format(s.update, { version: update.version });
-  ui.updateButton.textContent = s.updateAction;
-  ui.updateButton.hidden = updating;
-}
-
-async function installUpdate() {
-  updating = true;
-  renderUpdate();
-  try {
-    await backend.installUpdate();
-  } catch {
-    updating = false;
-    update = null;
-    renderUpdate();
-    flash(text().updateError);
-  }
-}
-
 let backend: Backend;
 let snapshot: Snapshot;
 let status: Status;
 let settings: Settings;
+let update: UpdateInfo | null = null;
+let updating = false;
 let flashMessage = "";
 let flashTimer: number | undefined;
 
@@ -99,7 +77,7 @@ function renderStatus() {
   ui.app.dataset.phase = status.phase;
   ui.title.textContent = s.phase[status.phase];
   ui.detail.textContent = detailText();
-  ui.profile.textContent = status.phase === "on" && status.profile ? format(s.profile, { profile: status.profile }) : "";
+  ui.profile.textContent = status.phase === "on" && status.step > 0 ? format(s.profile, { step: status.step }) : "";
 
   const action =
     status.phase === "on" ? s.action.disconnect : status.phase === "connecting" ? s.action.cancel : s.action.connect;
@@ -107,72 +85,62 @@ function renderStatus() {
   ui.power.setAttribute("aria-label", action);
   ui.power.disabled = status.phase === "stopping";
   ui.pending.hidden = !(status.phase === "on" || status.phase === "connecting");
+
+  ui.discord.hidden = !(snapshot.platform === "macos" && status.phase === "on" && settings.targets.includes("discord"));
+  ui.discord.textContent = s.openDiscord;
 }
 
-function segmented<T extends string>(
-  container: HTMLElement,
-  options: { id: T; label: string }[],
-  active: T,
-  select: (id: T) => void,
-) {
-  container.replaceChildren(
+function fillSelect<T extends string>(select: HTMLSelectElement, options: { id: T; label: string }[], active: T) {
+  select.replaceChildren(
     ...options.map((option) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = option.label;
-      button.classList.toggle("active", option.id === active);
-      button.setAttribute("aria-pressed", String(option.id === active));
-      button.addEventListener("click", () => {
-        if (option.id !== active) select(option.id);
-      });
-      return button;
+      const element = document.createElement("option");
+      element.value = option.id;
+      element.textContent = option.label;
+      element.selected = option.id === active;
+      return element;
     }),
   );
 }
 
-function renderTargets() {
-  ui.targets.replaceChildren(
-    ...snapshot.targets.map((target) => {
-      const row = document.createElement("label");
-      row.className = "check";
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = settings.targets.includes(target.id);
-      input.addEventListener("change", () => {
-        const targets = input.checked
-          ? [...settings.targets, target.id]
-          : settings.targets.filter((id) => id !== target.id);
-        void save({ targets });
-      });
-      const box = document.createElement("span");
-      box.className = "box";
-      box.innerHTML = CHECK_ICON;
-      const name = document.createElement("span");
-      name.textContent = target.name;
-      row.append(input, box, name);
-      return row;
-    }),
-  );
+function siteRow(name: string, control: HTMLElement): HTMLElement {
+  const row = document.createElement("label");
+  row.className = "item";
+  const label = document.createElement("span");
+  label.textContent = name;
+  row.append(label, control);
+  return row;
 }
 
-function renderCustom() {
-  ui.custom.hidden = settings.custom.length === 0;
-  ui.custom.replaceChildren(
-    ...settings.custom.map((domain) => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      const label = document.createElement("span");
-      label.textContent = domain;
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.title = text().remove;
-      remove.setAttribute("aria-label", `${text().remove} ${domain}`);
-      remove.innerHTML = REMOVE_ICON;
-      remove.addEventListener("click", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
-      chip.append(label, remove);
-      return chip;
-    }),
-  );
+function renderSites() {
+  const s = text();
+  const presets = snapshot.targets.map((target) => {
+    const toggle = document.createElement("input");
+    toggle.type = "checkbox";
+    toggle.className = "switch";
+    toggle.checked = settings.targets.includes(target.id);
+    toggle.addEventListener("change", () => {
+      const targets = toggle.checked
+        ? [...settings.targets, target.id]
+        : settings.targets.filter((id) => id !== target.id);
+      void save({ targets });
+    });
+    return siteRow(target.name, toggle);
+  });
+
+  const custom = settings.custom.map((domain) => {
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove";
+    remove.title = s.remove;
+    remove.setAttribute("aria-label", `${s.remove} ${domain}`);
+    remove.innerHTML = REMOVE_ICON;
+    remove.addEventListener("click", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
+    const row = siteRow(domain, remove);
+    row.classList.add("custom");
+    return row;
+  });
+
+  ui.siteRows.replaceChildren(...presets, ...custom);
 }
 
 function renderSettings() {
@@ -188,22 +156,27 @@ function renderSettings() {
   ui.back.setAttribute("aria-label", s.back);
   ui.settingsTitle.textContent = s.settings;
   ui.pending.textContent = s.pending;
-  ui.regionTitle.textContent = s.region;
-  segmented(
-    ui.region,
-    REGIONS.map((id) => ({ id, label: s.regions[id] })),
-    settings.region,
-    (region) => void save({ region }),
-  );
+  ui.generalTitle.textContent = s.general;
+  ui.regionLabel.textContent = s.region;
+  fillSelect(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region);
+  ui.languageLabel.textContent = s.language;
+  fillSelect(ui.language, languages, language());
   ui.sitesTitle.textContent = s.sites;
   ui.sitesHint.textContent = s.sitesHint;
-  renderTargets();
-  renderCustom();
+  renderSites();
   ui.addInput.placeholder = s.addPlaceholder;
-  ui.languageTitle.textContent = s.language;
-  segmented(ui.language, languages, language(), (id) => void changeLanguage(id));
-  ui.version.textContent = format(s.version, { version: snapshot.version });
+  ui.addButton.textContent = s.add;
+  ui.version.textContent = `FreeDPI ${snapshot.version}`;
   ui.quit.textContent = s.quit;
+}
+
+function renderUpdate() {
+  const s = text();
+  ui.update.hidden = update === null;
+  if (!update) return;
+  ui.updateText.textContent = updating ? s.updating : format(s.update, { version: update.version });
+  ui.updateButton.textContent = s.updateAction;
+  ui.updateButton.hidden = updating;
 }
 
 function render() {
@@ -233,9 +206,17 @@ async function save(change: Partial<Preferences>) {
   render();
 }
 
-async function changeLanguage(next: Language) {
-  settings = await backend.setLanguage(next);
-  render();
+async function installUpdate() {
+  updating = true;
+  renderUpdate();
+  try {
+    await backend.installUpdate();
+  } catch {
+    updating = false;
+    update = null;
+    renderUpdate();
+    flash(text().updateError);
+  }
 }
 
 function normalizeDomain(input: string): string | null {
@@ -261,6 +242,16 @@ function bind() {
     else if (status.phase === "connecting" || status.phase === "on") void backend.disconnect();
   });
 
+  ui.discord.addEventListener("click", async () => {
+    ui.discord.disabled = true;
+    try {
+      await backend.openDiscord();
+    } catch {
+      flash(text().discordError);
+    }
+    ui.discord.disabled = false;
+  });
+
   ui.autostart.addEventListener("change", async () => {
     const wanted = ui.autostart.checked;
     try {
@@ -268,6 +259,12 @@ function bind() {
     } catch {
       flash(text().autostartError);
     }
+    render();
+  });
+
+  ui.region.addEventListener("change", () => void save({ region: ui.region.value as Region }));
+  ui.language.addEventListener("change", async () => {
+    settings = await backend.setLanguage(ui.language.value as Language);
     render();
   });
 
@@ -307,11 +304,6 @@ async function boot() {
   update = snapshot.update;
   document.documentElement.dataset.platform = snapshot.platform;
 
-  backend.onUpdate((next) => {
-    update = next;
-    renderUpdate();
-  });
-
   backend.onStatus((next) => {
     status = next;
     renderStatus();
@@ -319,6 +311,11 @@ async function boot() {
   backend.onSettings((next) => {
     settings = next;
     renderSettings();
+    renderStatus();
+    renderUpdate();
+  });
+  backend.onUpdate((next) => {
+    update = next;
     renderUpdate();
   });
 

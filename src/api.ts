@@ -21,6 +21,7 @@ function tauriBackend(): Backend {
       void listen<Settings>("settings", (event) => handler(event.payload));
     },
     installUpdate: () => invoke("install_update"),
+    openDiscord: () => invoke("open_discord"),
     onUpdate: (handler) => {
       void listen<UpdateInfo>("update", (event) => handler(event.payload));
     },

@@ -48,6 +48,7 @@
         <h1 class="status" id="status-title"></h1>
         <p class="detail" id="status-detail"></p>
         <p class="profile" id="status-profile"></p>
+        <button class="pill" id="btn-discord" type="button" hidden></button>
       </main>
 
       <div class="update" id="update" hidden>
@@ -71,30 +72,33 @@
         </div>
 
         <div class="sheet-body">
-          <p class="notice" id="lbl-pending"></p>
+          <p class="pending" id="lbl-pending"></p>
 
-          <div class="group">
-            <h3 id="lbl-region"></h3>
-            <div class="segmented" id="region"></div>
-          </div>
+          <section class="section">
+            <h3 id="lbl-general"></h3>
+            <div class="card">
+              <label class="item">
+                <span id="lbl-region"></span>
+                <select class="select" id="region"></select>
+              </label>
+              <label class="item">
+                <span id="lbl-language"></span>
+                <select class="select" id="language"></select>
+              </label>
+            </div>
+          </section>
 
-          <div class="group">
+          <section class="section">
             <h3 id="lbl-sites"></h3>
+            <div class="card">
+              <div id="site-rows"></div>
+              <form class="item add" id="add-form" autocomplete="off">
+                <input id="add-input" type="text" spellcheck="false" />
+                <button class="link-btn" id="btn-add" type="submit"></button>
+              </form>
+            </div>
             <p class="hint" id="lbl-sites-hint"></p>
-            <div class="list" id="targets"></div>
-            <div class="chips" id="custom"></div>
-            <form class="add" id="add-form" autocomplete="off">
-              <input id="add-input" type="text" spellcheck="false" />
-              <button class="icon-btn solid" type="submit">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg>
-              </button>
-            </form>
-          </div>
-
-          <div class="group">
-            <h3 id="lbl-language"></h3>
-            <div class="segmented" id="language"></div>
-          </div>
+          </section>
         </div>
 
         <div class="sheet-foot">

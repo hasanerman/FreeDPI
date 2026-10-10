@@ -42,8 +42,8 @@ impl Status {
         Self { step, total, ..Self::new(Phase::Connecting) }
     }
 
-    fn on(profile: String) -> Self {
-        Self { profile: Some(profile), ..Self::new(Phase::On) }
+    fn on(profile: String, step: usize, total: usize) -> Self {
+        Self { profile: Some(profile), step, total, ..Self::new(Phase::On) }
     }
 
     fn failed(error: &EngineError) -> Self {
@@ -183,7 +183,8 @@ impl Controller {
             Ok((running, profile)) => {
                 *session = Some(running);
                 self.update(|s| s.profile = Some(profile.clone()));
-                self.set_status(Status::on(profile));
+                let number = self.profile_number(&profile);
+                self.set_status(Status::on(profile, number.0, number.1));
             }
             Err(Stop::Cancelled) => self.set_status(Status::new(Phase::Off)),
             Err(Stop::Failed(error)) => self.set_status(Status::failed(&error)),
@@ -201,6 +202,16 @@ impl Controller {
         }
         self.update(|s| s.engine_active = false);
         self.set_status(Status::new(Phase::Off));
+    }
+
+    fn profile_number(&self, profile: &str) -> (usize, usize) {
+        let all = Engine::profiles(self.settings().region);
+        let index = all.iter().position(|p| *p == profile).map_or(0, |i| i + 1);
+        (index, all.len())
+    }
+
+    pub async fn proxy_port(&self) -> Option<u16> {
+        self.session.lock().await.as_ref().and_then(|running| running.probe_proxy())
     }
 
     async fn search(&self, cancel: &mut watch::Receiver<bool>) -> Result<(Running, String), Stop> {

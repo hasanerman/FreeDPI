@@ -7,7 +7,7 @@ function initialStatus(phase: string | null): Status {
     case "connecting":
       return { phase: "connecting", step: 2, total: PROFILES.length, profile: null, error: null };
     case "on":
-      return { phase: "on", step: 0, total: 0, profile: PROFILES[0], error: null };
+      return { phase: "on", step: 1, total: PROFILES.length, profile: PROFILES[0], error: null };
     case "error":
       return { phase: "error", step: 0, total: 0, profile: null, error: "no_profile" };
     default:
@@ -56,7 +56,7 @@ export function mockBackend(): Backend {
           { id: "roblox", name: "Roblox" },
           { id: "wattpad", name: "Wattpad" },
         ],
-        platform: "windows",
+        platform: params.get("platform") ?? "windows",
         version: "0.1.0-dev",
         update: params.get("update") !== null ? { version: "0.2.0" } : null,
       };
@@ -70,7 +70,7 @@ export function mockBackend(): Backend {
           emit(
             fail
               ? { phase: "error", step: 0, total: 0, profile: null, error: "no_profile" }
-              : { phase: "on", step: 0, total: 0, profile: PROFILES[2], error: null },
+              : { phase: "on", step: 3, total: PROFILES.length, profile: PROFILES[2], error: null },
           );
           return;
         }
@@ -105,5 +105,6 @@ export function mockBackend(): Backend {
       await new Promise((resolve) => window.setTimeout(resolve, 1500));
     },
     onUpdate() {},
+    async openDiscord() {},
   };
 }
