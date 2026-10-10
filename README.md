@@ -1,63 +1,136 @@
 <p align="center">
-  <img src="src-tauri/icons/128x128.png" width="96" alt="FreeDPI" />
+  <img src="src-tauri/icons/128x128.png" width="96" alt="FreeDPI logo" />
 </p>
 
 <h1 align="center">FreeDPI</h1>
 
 <p align="center">
   One-click DPI bypass for Windows and macOS.<br />
-  Opens Discord and other sites blocked by your internet provider. No VPN, no remote server, no speed loss.
+  Opens Discord and other sites blocked by your internet provider, without a VPN.
+</p>
+
+<p align="center">
+  <a href="../../releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/hasanerman/FreeDPI?label=release" /></a>
+  <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-informational" />
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/hasanerman/FreeDPI" /></a>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/off.png" width="230" alt="FreeDPI when disconnected" />
+  <img src="docs/screenshots/connecting.png" width="230" alt="FreeDPI while searching for a working setting" />
+  <img src="docs/screenshots/connected.png" width="230" alt="FreeDPI when connected" />
 </p>
 
 ---
 
-## What it does
+## Overview
 
-Many internet providers block sites with Deep Packet Inspection (DPI). FreeDPI changes the way your computer sends its first packets so the filter can no longer recognize the site, while the traffic still goes directly to the real server.
+Many internet providers block websites with Deep Packet Inspection (DPI). The filter reads the name of the site in the first packet your computer sends and cuts the connection when it matches a blocklist.
 
-Press the power button and FreeDPI tries its settings one by one, checks whether your chosen sites actually open, and keeps the first one that works. It remembers that setting for next time.
+FreeDPI changes how that first packet is sent so the filter can no longer read it, while your traffic still goes directly to the real server. There is no remote server, no account and no speed loss.
+
+You press one button. FreeDPI tries its built-in settings one by one, checks that the sites you chose really open, and keeps the first one that works. Next time it starts with that setting.
+
+## Features
 
 - **One button.** Finds a working setting for your network automatically.
-- **Runs in the background.** Closing the window keeps it running in the tray (menu bar on macOS). Connect, disconnect and quit from the tray menu.
-- **Start with system.** Optionally starts at login and connects on its own.
-- **Your sites.** Discord, YouTube, Roblox, Wattpad, or any domain you add.
-- **Regions.** Settings tuned for Türkiye and Russia, plus a general list.
-- **DNS protection.** Lookups bypass your provider's DNS so poisoned answers do not break sites.
-- **English and Türkçe.**
+- **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter.
+- **Runs in the background.** Closing the window keeps FreeDPI running in the system tray on Windows and in the menu bar on macOS. Connect, disconnect, open and quit from the tray menu.
+- **Start with system.** Optionally starts when you log in and connects on its own.
+- **Your sites.** Choose which sites must open, or add any domain yourself.
+- **DNS protection.** Name lookups avoid your provider's DNS, so poisoned answers cannot redirect you to a block page.
+- **Automatic updates.** New versions are announced inside the app and install with one click. Every update is signed and verified before it is installed.
+- **Installer.** Start menu and desktop shortcuts on Windows, a standard app bundle on macOS, and a clean uninstaller.
+- **English and Turkish** interface.
 
-FreeDPI is not a VPN. It does not hide your IP address or encrypt your traffic.
+## Supported
+
+| | |
+| --- | --- |
+| **Windows** | Windows 10 and 11, 64-bit |
+| **macOS** | macOS 11 Big Sur or later, Apple Silicon and Intel |
+| **Built-in sites** | Discord, YouTube, Roblox, Wattpad |
+| **Custom sites** | Any domain you add in Settings |
+| **Regions** | Auto, Türkiye, Russia, Other |
+| **Languages** | English, Türkçe |
+
+FreeDPI has been tested on Turkish providers, including Superonline. Other providers and countries are supported through the general setting list. If FreeDPI does not work on your network, please [open an issue](../../issues) and mention your country and provider.
+
+<p align="center">
+  <img src="docs/screenshots/settings.png" width="260" alt="FreeDPI settings" />
+</p>
+
+## Install
+
+Download the latest version from [Releases](../../releases/latest).
+
+### Windows
+
+1. Download `FreeDPI_x.y.z_x64-setup.exe` and run it.
+2. If Windows SmartScreen shows "Windows protected your PC", click **More info** and then **Run anyway**. This appears because the app is not code-signed yet.
+3. Open FreeDPI from the Start menu or the desktop shortcut. It asks for administrator permission once at launch, which the network driver needs.
+
+### macOS
+
+1. Download `FreeDPI_x.y.z_universal.dmg`, open it and drag FreeDPI into Applications.
+2. The first time you open it, macOS says the developer cannot be verified. Open **System Settings > Privacy & Security** and click **Open Anyway**. This appears because the app is not notarized yet.
+3. Connect with the power button. macOS may ask for your password once so FreeDPI can set the system proxy.
+
+## macOS notes
+
+**Keystroke permission prompt.** macOS may show a dialog saying FreeDPI wants to receive keystrokes from any application. Click **Deny**. FreeDPI never reads your keyboard and does not need this permission. The prompt is triggered by the desktop framework the app is built on, not by FreeDPI itself. Denying it does not affect any feature, and macOS stops asking after you deny it.
+
+**Open FreeDPI before Discord.** On macOS, FreeDPI works through the system proxy, so apps pick it up when they start. Connect FreeDPI first and then open Discord. If Discord was already open, use the **Open Discord with FreeDPI** button in the app, or quit Discord and open it again. Turning on **Start with system** makes this automatic after a restart.
 
 ## How it works
 
 | | Windows | macOS |
 | --- | --- | --- |
-| Engine | [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) with the WinDivert driver | Built-in Rust engine (local proxy) |
-| Scope | All apps, transparently | Apps that use the system proxy (browsers, Discord) |
-| DNS | Redirected to Yandex DNS on port 1253 | DNS over HTTPS (Cloudflare, Google) |
-| Permissions | Administrator (asked once at launch) | May ask for your password to set the system proxy |
+| Engine | [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) with the WinDivert driver | Built-in engine written in Rust |
+| Scope | All apps, transparently | Apps that use the system proxy, including browsers and Discord |
+| DNS | Redirected to a resolver on a non-standard port | DNS over HTTPS through Cloudflare and Google |
+| Permissions | Administrator, once at launch | Your password, once, to set the system proxy |
 
-The macOS engine splits the TLS ClientHello into several TCP segments or TLS records so the server name is never in one piece. The same engine is tested on every platform in CI.
+The macOS engine runs a local proxy on `127.0.0.1:18080`. It splits the first TLS packet (the ClientHello) into several TCP segments or TLS records, so the site name never appears in one piece, and it can send the first segment out of order. The same engine is covered by tests on both platforms in CI.
 
-## Install
+## Privacy
 
-Download the latest installer from [Releases](../../releases).
+FreeDPI has no accounts, analytics or telemetry. It only connects to:
 
-- **Windows 10/11:** run `FreeDPI_x.y.z_x64-setup.exe`. It adds Start menu and desktop shortcuts and an uninstaller.
-- **macOS 11+:** open the `.dmg` and drag FreeDPI to Applications.
+- the sites you selected, to check that they open,
+- Cloudflare and Google DNS over HTTPS on macOS, to look up site addresses,
+- GitHub, to check for new versions.
 
-If FreeDPI cannot connect on Windows and Kaspersky is installed, uninstall Kaspersky. It blocks the WinDivert driver.
+FreeDPI is not a VPN. It does not hide your IP address or encrypt your traffic beyond what the sites themselves already do.
+
+## Troubleshooting
+
+**"No setting worked on this network."** Check that your internet connection works, then try again. Choosing your region in Settings can help. If it still fails, open an issue with your country and provider.
+
+**Windows: nothing works and Kaspersky is installed.** Kaspersky blocks the WinDivert network driver. Uninstalling Kaspersky completely is required. Disabling it is not enough.
+
+**macOS: a site opens in the browser but not in an app.** The app was probably started before FreeDPI connected. Quit the app and open it again.
+
+**Another DPI tool is running.** Close GoodbyeDPI, zapret or similar tools before connecting. FreeDPI stops an old GoodbyeDPI service automatically on Windows.
+
+## Status and bug reports
+
+FreeDPI is under active development. Bugs are fixed as they are reported, and fixes reach you through the automatic updater. If something does not work, please [open an issue](../../issues) with:
+
+- your operating system and FreeDPI version (shown at the bottom of Settings),
+- your country and internet provider,
+- what you expected and what happened.
+
+Planned next: code signing for Windows and macOS, and an Android version.
 
 ## Build from source
 
-Requirements: Node.js 22+, Rust (stable), and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS.
+Requirements: Node.js 22 or later, Rust stable, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your operating system.
 
 ```
 npm install
 npm run tauri dev
-npm run tauri build
 ```
-
-Debug builds on Windows do not ask for administrator rights, so the engine only starts in a release build or when the terminal runs as administrator.
 
 Run the tests:
 
@@ -65,38 +138,31 @@ Run the tests:
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-## Project layout
+Debug builds on Windows do not request administrator rights, so the engine only starts in a release build or from an elevated terminal. Release installers are built by GitHub Actions.
+
+### Project layout
 
 ```
 src/                     User interface (TypeScript, no framework)
 src-tauri/src/
-  controller.rs          Connect / disconnect state machine
-  catalog.rs             Regions, settings lists and test sites
-  probe.rs               Checks whether the chosen sites open
+  controller.rs          Connect, disconnect and self-healing logic
+  catalog.rs             Regions, setting lists and test sites
+  probe.rs               Checks whether the selected sites open
   tray.rs                Tray icon and menu
-  autostart.rs           Start with system (Task Scheduler / LaunchAgent)
+  autostart.rs           Start with system (Task Scheduler, LaunchAgent)
+  updater.rs             Signed automatic updates
   engine/driver.rs       Windows engine (GoodbyeDPI)
-  engine/proxy/          Cross-platform proxy engine (TLS split, DoH)
+  engine/proxy/          Cross-platform proxy engine (TLS split, DNS over HTTPS)
   engine/sysproxy.rs     macOS system proxy
-src-tauri/resources/     Bundled GoodbyeDPI and WinDivert binaries (Windows)
+src-tauri/resources/     Bundled GoodbyeDPI and WinDivert binaries for Windows
 third_party/             Licenses and checksums of bundled components
+docs/screenshots/        Images used in this README
 ```
 
 ## License
 
-FreeDPI is licensed under the [GNU General Public License v3.0](LICENSE).
+FreeDPI is released under the [GNU General Public License v3.0](LICENSE).
 
-Bundled third-party components keep their own licenses. See [third_party](third_party/README.md). FreeDPI is an independent project and is not affiliated with GoodbyeDPI.
+Bundled third-party components keep their own licenses. See [third_party](third_party/README.md) for details and checksums.
 
----
-
-## Türkçe
-
-FreeDPI, internet sağlayıcının DPI ile engellediği Discord gibi siteleri tek tuşla açan bir uygulamadır. Windows ve macOS'ta çalışır. VPN değildir, hızını düşürmez.
-
-- Butona bas, FreeDPI ayarları sırayla dener ve seçtiğin sitelerin açıldığı ilk ayarda kalır.
-- Pencereyi kapatınca arka planda çalışmaya devam eder. Sağ alttaki simgeden (macOS'ta üst menü çubuğundan) bağlanıp kesebilirsin.
-- İstersen bilgisayar açılınca kendiliğinden başlar ve bağlanır.
-- Superonline, Türk Telekom ve diğer sağlayıcılar için Türkiye'ye özel ayarlar içerir.
-
-Kaspersky yüklüyse FreeDPI çalışmayabilir. Kaspersky'yi kaldırman gerekir.
+FreeDPI is an independent project and is not affiliated with GoodbyeDPI or its authors. Thanks to [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) and [WinDivert](https://github.com/basil00/WinDivert), which power the Windows engine.

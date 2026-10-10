@@ -320,7 +320,9 @@ async function boot() {
   });
 
   bind();
-  openSheet(false);
+  const devParams = new URLSearchParams(location.search);
+  openSheet(import.meta.env.DEV && devParams.has("settings"));
+  if (import.meta.env.DEV && devParams.has("shot")) document.body.style.width = "380px";
   render();
   document.body.classList.add("ready");
 }

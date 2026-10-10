@@ -1,3 +1,4 @@
+import pkg from "../../package.json";
 import type { Backend, Phase, Settings, Status } from "../types";
 
 const PROFILES = ["-5 --wrong-seq --reverse-frag", "-5 --set-ttl 5", "-5", "--set-ttl 3", "-9"];
@@ -57,7 +58,7 @@ export function mockBackend(): Backend {
           { id: "wattpad", name: "Wattpad" },
         ],
         platform: params.get("platform") ?? "windows",
-        version: "0.1.0-dev",
+        version: pkg.version,
         update: params.get("update") !== null ? { version: "0.2.0" } : null,
       };
     },
