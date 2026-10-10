@@ -1,6 +1,6 @@
 import { createBackend } from "./api";
 import { format, languages, resolveLanguage, strings } from "./i18n";
-import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status } from "./types";
+import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status, UpdateInfo } from "./types";
 
 const REGIONS: Region[] = ["auto", "turkey", "russia", "other"];
 const CHECK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
@@ -35,7 +35,35 @@ const ui = {
   language: byId("language"),
   version: byId("version"),
   quit: byId<HTMLButtonElement>("btn-quit"),
+  update: byId("update"),
+  updateText: byId("update-text"),
+  updateButton: byId<HTMLButtonElement>("btn-update"),
 };
+
+let update: UpdateInfo | null = null;
+let updating = false;
+
+function renderUpdate() {
+  const s = text();
+  ui.update.hidden = update === null;
+  if (!update) return;
+  ui.updateText.textContent = updating ? s.updating : format(s.update, { version: update.version });
+  ui.updateButton.textContent = s.updateAction;
+  ui.updateButton.hidden = updating;
+}
+
+async function installUpdate() {
+  updating = true;
+  renderUpdate();
+  try {
+    await backend.installUpdate();
+  } catch {
+    updating = false;
+    update = null;
+    renderUpdate();
+    flash(text().updateError);
+  }
+}
 
 let backend: Backend;
 let snapshot: Snapshot;
@@ -181,6 +209,7 @@ function renderSettings() {
 function render() {
   renderSettings();
   renderStatus();
+  renderUpdate();
 }
 
 function flash(message: string) {
@@ -246,6 +275,7 @@ function bind() {
   ui.back.addEventListener("click", () => openSheet(false));
   ui.hide.addEventListener("click", () => void backend.hide());
   ui.quit.addEventListener("click", () => void backend.quit());
+  ui.updateButton.addEventListener("click", () => void installUpdate());
 
   ui.addForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -274,7 +304,13 @@ async function boot() {
   snapshot = await backend.init(navigator.language);
   status = snapshot.status;
   settings = snapshot.settings;
+  update = snapshot.update;
   document.documentElement.dataset.platform = snapshot.platform;
+
+  backend.onUpdate((next) => {
+    update = next;
+    renderUpdate();
+  });
 
   backend.onStatus((next) => {
     status = next;
@@ -283,6 +319,7 @@ async function boot() {
   backend.onSettings((next) => {
     settings = next;
     renderSettings();
+    renderUpdate();
   });
 
   bind();

@@ -58,6 +58,7 @@ export function mockBackend(): Backend {
         ],
         platform: "windows",
         version: "0.1.0-dev",
+        update: params.get("update") !== null ? { version: "0.2.0" } : null,
       };
     },
     async connect() {
@@ -100,5 +101,9 @@ export function mockBackend(): Backend {
     onSettings(handler) {
       settingsHandlers.push(handler);
     },
+    async installUpdate() {
+      await new Promise((resolve) => window.setTimeout(resolve, 1500));
+    },
+    onUpdate() {},
   };
 }

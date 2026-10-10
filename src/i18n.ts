@@ -50,6 +50,10 @@ const en = {
   language: "Language",
   quit: "Quit FreeDPI",
   version: "Version {version}",
+  update: "Version {version} is available",
+  updateAction: "Update",
+  updating: "Updating…",
+  updateError: "Update failed. Try again later.",
 };
 
 type Strings = typeof en;
@@ -104,6 +108,10 @@ const tr: Strings = {
   language: "Dil",
   quit: "FreeDPI'dan çık",
   version: "Sürüm {version}",
+  update: "Yeni sürüm hazır: {version}",
+  updateAction: "Güncelle",
+  updating: "Güncelleniyor…",
+  updateError: "Güncelleme başarısız. Sonra tekrar dene.",
 };
 
 const dictionaries: Record<Language, Strings> = { en, tr };

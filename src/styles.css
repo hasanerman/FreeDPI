@@ -66,7 +66,7 @@ svg {
 .app {
   position: relative;
   display: grid;
-  grid-template-rows: 44px 1fr auto;
+  grid-template-rows: 44px 1fr auto auto;
   height: 100vh;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -287,6 +287,36 @@ body.ready .app {
   color: var(--faint);
   font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
   font-size: 11px;
+}
+
+.update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 16px 12px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid rgba(46, 209, 115, 0.3);
+  border-radius: 10px;
+  background: rgba(46, 209, 115, 0.08);
+  color: #8fe3b3;
+  font-size: 12.5px;
+}
+
+.update-btn {
+  flex: none;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--green);
+  color: #06210f;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.update-btn:hover {
+  filter: brightness(1.08);
 }
 
 .footer {

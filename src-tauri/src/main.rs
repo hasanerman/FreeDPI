@@ -10,6 +10,7 @@ mod probe;
 mod settings;
 mod system;
 mod tray;
+mod updater;
 
 use std::sync::Arc;
 
@@ -22,7 +23,10 @@ fn main() {
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_window(app)))
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(updater::Pending::default())
         .setup(move |app| {
+            updater::watch(app.handle().clone());
             let controller = Arc::new(Controller::new(app.handle())?);
             tray::create(app.handle(), &controller.settings())?;
             app.manage(controller.clone());
@@ -47,6 +51,7 @@ fn main() {
             commands::set_language,
             commands::set_autostart,
             commands::quit,
+            commands::install_update,
         ])
         .build(tauri::generate_context!())
         .expect("failed to start FreeDPI");

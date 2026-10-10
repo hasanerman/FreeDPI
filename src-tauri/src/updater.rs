@@ -1,0 +1,62 @@
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_updater::{Update, UpdaterExt};
+
+use crate::controller::Controller;
+
+const INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
+
+#[derive(Default)]
+pub struct Pending(Mutex<Option<Update>>);
+
+#[derive(Clone, Serialize)]
+pub struct Available {
+    pub version: String,
+}
+
+pub fn watch(app: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        loop {
+            check(&app).await;
+            tokio::time::sleep(INTERVAL).await;
+        }
+    });
+}
+
+async fn check(app: &AppHandle) {
+    let Ok(updater) = app.updater() else {
+        return;
+    };
+    let Ok(Some(update)) = updater.check().await else {
+        return;
+    };
+    let info = Available { version: update.version.clone() };
+    if let Some(pending) = app.try_state::<Pending>() {
+        *pending.0.lock().unwrap_or_else(|e| e.into_inner()) = Some(update);
+    }
+    let _ = app.emit("update", &info);
+}
+
+pub fn available(app: &AppHandle) -> Option<Available> {
+    let pending = app.try_state::<Pending>()?;
+    let guard = pending.0.lock().unwrap_or_else(|e| e.into_inner());
+    guard.as_ref().map(|u| Available { version: u.version.clone() })
+}
+
+pub async fn install(app: AppHandle) -> Result<(), String> {
+    let update = app
+        .try_state::<Pending>()
+        .and_then(|p| p.0.lock().unwrap_or_else(|e| e.into_inner()).take())
+        .ok_or("no update available")?;
+    if let Some(controller) = app.try_state::<Arc<Controller>>() {
+        controller.disconnect().await;
+    }
+    update
+        .download_and_install(|_, _| {}, || {})
+        .await
+        .map_err(|e| e.to_string())?;
+    app.restart();
+}
