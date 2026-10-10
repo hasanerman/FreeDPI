@@ -40,6 +40,13 @@ impl Engine {
 
     pub fn recover() {}
 
+    pub fn unload() {
+        let _ = run("taskkill", &["/F", "/IM", "goodbyedpi.exe"]);
+        for service in ["WinDivert1.4", "WinDivert"] {
+            let _ = run("sc", &["stop", service]);
+        }
+    }
+
     pub async fn prepare(&self) -> Result<(), EngineError> {
         if !self.exe.is_file() {
             return Err(EngineError::MissingFiles);

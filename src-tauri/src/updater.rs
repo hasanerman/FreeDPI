@@ -54,6 +54,7 @@ pub async fn install(app: AppHandle) -> Result<(), String> {
     if let Some(controller) = app.try_state::<Arc<Controller>>() {
         controller.disconnect().await;
     }
+    let _ = tokio::task::spawn_blocking(crate::engine::Engine::unload).await;
     update
         .download_and_install(|_, _| {}, || {})
         .await

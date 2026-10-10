@@ -28,6 +28,8 @@ impl Engine {
         let _ = super::sysproxy::disable();
     }
 
+    pub fn unload() {}
+
     pub async fn prepare(&self) -> Result<(), EngineError> {
         Ok(())
     }
