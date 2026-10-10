@@ -4,13 +4,6 @@ import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status
 
 const REGIONS: Region[] = ["auto", "turkey", "russia", "other"];
 const CHECK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
-const SITE_COLORS: Record<string, string> = {
-  discord: "#5865f2",
-  youtube: "#ff3b3b",
-  roblox: "#9aa1b0",
-  wattpad: "#ff6a1f",
-};
-const CUSTOM_COLOR = "#4c8dff";
 const REMOVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" /></svg>';
 const DOMAIN = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/;
 
@@ -121,23 +114,19 @@ function chips<T extends string>(
   );
 }
 
-function tile(name: string, color: string, active: boolean, trailing: string): HTMLButtonElement {
+function tile(name: string, active: boolean, trailing: string): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "tile";
   button.classList.toggle("active", active);
   button.setAttribute("aria-pressed", String(active));
-  const badge = document.createElement("span");
-  badge.className = "badge";
-  badge.style.setProperty("--badge", color);
-  badge.textContent = name.charAt(0).toUpperCase();
   const label = document.createElement("span");
   label.className = "tile-name";
   label.textContent = name;
   const mark = document.createElement("span");
   mark.className = "mark-icon";
   mark.innerHTML = trailing;
-  button.append(badge, label, mark);
+  button.append(label, mark);
   return button;
 }
 
@@ -145,7 +134,7 @@ function renderSites() {
   const s = text();
   const presets = snapshot.targets.map((target) => {
     const active = settings.targets.includes(target.id);
-    const button = tile(target.name, SITE_COLORS[target.id] ?? CUSTOM_COLOR, active, CHECK_ICON);
+    const button = tile(target.name, active, CHECK_ICON);
     button.addEventListener("click", () => {
       const targets = active ? settings.targets.filter((id) => id !== target.id) : [...settings.targets, target.id];
       void save({ targets });
@@ -154,7 +143,7 @@ function renderSites() {
   });
 
   const custom = settings.custom.map((domain) => {
-    const button = tile(domain, CUSTOM_COLOR, true, REMOVE_ICON);
+    const button = tile(domain, true, REMOVE_ICON);
     button.classList.add("custom");
     button.title = `${s.remove} ${domain}`;
     button.addEventListener("click", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
