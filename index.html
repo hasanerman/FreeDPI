@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreeDPI</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <div class="app" id="app" data-phase="off">
+      <header class="titlebar" data-tauri-drag-region>
+        <div class="brand" data-tauri-drag-region>
+          <span class="mark">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14.1 7.01A5.88 5.88 0 1 0 14.1 16.99" />
+              <path d="M9.54 12H18.9M16.26 9.36 18.9 12l-2.64 2.64" />
+            </svg>
+          </span>
+          <span class="name" data-tauri-drag-region>FreeDPI</span>
+        </div>
+        <div class="actions">
+          <button class="icon-btn" id="btn-settings" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+              <circle cx="15" cy="7" r="2" />
+              <circle cx="9" cy="17" r="2" />
+            </svg>
+          </button>
+          <button class="icon-btn" id="btn-hide" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="home">
+        <div class="dial">
+          <div class="halo"></div>
+          <svg class="ring" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="98" /></svg>
+          <svg class="spinner" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 2A98 98 0 0 1 198 100" /></svg>
+          <button class="power" id="btn-power" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5v8" />
+              <path d="M6.7 6.6a7.5 7.5 0 1 0 10.6 0" />
+            </svg>
+          </button>
+        </div>
+        <h1 class="status" id="status-title"></h1>
+        <p class="detail" id="status-detail"></p>
+        <p class="profile" id="status-profile"></p>
+      </main>
+
+      <footer class="footer">
+        <label class="row">
+          <span id="lbl-autostart"></span>
+          <input class="switch" id="chk-autostart" type="checkbox" />
+        </label>
+      </footer>
+
+      <section class="sheet" id="sheet" aria-hidden="true">
+        <div class="sheet-head">
+          <button class="icon-btn" id="btn-back" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <h2 id="lbl-settings"></h2>
+        </div>
+
+        <div class="sheet-body">
+          <p class="notice" id="lbl-pending"></p>
+
+          <div class="group">
+            <h3 id="lbl-region"></h3>
+            <div class="segmented" id="region"></div>
+          </div>
+
+          <div class="group">
+            <h3 id="lbl-sites"></h3>
+            <p class="hint" id="lbl-sites-hint"></p>
+            <div class="list" id="targets"></div>
+            <div class="chips" id="custom"></div>
+            <form class="add" id="add-form" autocomplete="off">
+              <input id="add-input" type="text" spellcheck="false" />
+              <button class="icon-btn solid" type="submit">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg>
+              </button>
+            </form>
+          </div>
+
+          <div class="group">
+            <h3 id="lbl-language"></h3>
+            <div class="segmented" id="language"></div>
+          </div>
+        </div>
+
+        <div class="sheet-foot">
+          <span id="version"></span>
+          <button class="text-btn" id="btn-quit" type="button"></button>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
