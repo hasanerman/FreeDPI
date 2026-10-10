@@ -37,11 +37,11 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 - **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter.
 - **Runs in the background.** Closing the window keeps FreeDPI running in the system tray on Windows and in the menu bar on macOS. Connect, disconnect, open and quit from the tray menu.
 - **Start with system.** Optionally starts when you log in and connects on its own.
-- **Your sites.** Choose which sites must open, or add any domain yourself.
+- **Works for every site.** FreeDPI is not limited to a list. The test sites in Settings are only used to check which setting works on your network, and you can add any domain as a test site.
 - **DNS protection.** Name lookups avoid your provider's DNS, so poisoned answers cannot redirect you to a block page.
 - **Automatic updates.** New versions are announced inside the app and install with one click. Every update is signed and verified before it is installed.
 - **Installer.** Start menu and desktop shortcuts on Windows, a standard app bundle on macOS, and a clean uninstaller.
-- **English and Turkish** interface.
+- **English, Turkish and Russian** interface, chosen automatically from your system language.
 
 ## Supported
 
@@ -49,10 +49,9 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 | --- | --- |
 | **Windows** | Windows 10 and 11, 64-bit |
 | **macOS** | macOS 11 Big Sur or later, Apple Silicon and Intel |
-| **Built-in sites** | Discord, YouTube, Roblox, Wattpad |
-| **Custom sites** | Any domain you add in Settings |
+| **Sites** | Every site. Discord, YouTube, Roblox and Wattpad are built-in test sites, and you can add your own |
 | **Regions** | Auto, Türkiye, Russia, Other |
-| **Languages** | English, Türkçe |
+| **Languages** | English, Türkçe, Русский |
 
 FreeDPI has been tested on Turkish providers, including Superonline. Other providers and countries are supported through the general setting list. If FreeDPI does not work on your network, please [open an issue](../../issues) and mention your country and provider.
 
@@ -82,6 +81,28 @@ Download the latest version from [Releases](../../releases/latest).
 
 **Open FreeDPI before Discord.** On macOS, FreeDPI works through the system proxy, so apps pick it up when they start. Connect FreeDPI first and then open Discord. If Discord was already open, use the **Open Discord with FreeDPI** button in the app, or quit Discord and open it again. Turning on **Start with system** makes this automatic after a restart.
 
+## Settings
+
+**Region** decides which settings are tried first. Auto tries all of them and works everywhere, so you only need to change it if connecting takes long.
+
+**Test sites** are the sites FreeDPI opens to confirm that a setting works. They do not limit what gets unblocked: once connected, FreeDPI works for every site. Turn on the sites you care about most, and add a domain if a site you use is blocked but not in the list.
+
+**Language** switches between English, Turkish and Russian.
+
+The GitHub icon at the bottom of Settings opens this repository.
+
+## Antivirus warnings
+
+A few antivirus engines may flag the Windows installer. On VirusTotal, version 0.1.5 was flagged by 2 of 71 engines, both machine-learning based (SecureAge and Trapmine). Major engines such as Microsoft Defender, Kaspersky, BitDefender, ESET and Avast reported it as clean.
+
+This is a false positive, and it happens for three reasons:
+
+- FreeDPI ships the WinDivert network driver, which intercepts and modifies packets. Heuristic scanners treat any program that does this as suspicious. GoodbyeDPI itself receives the same warnings.
+- The app asks for administrator rights, which the driver needs.
+- The installer is not code-signed yet.
+
+The full source code is in this repository, and the bundled third-party binaries are listed with their checksums in [third_party](third_party/README.md), so you can verify everything yourself. Code signing is planned and should remove most of these warnings.
+
 ## How it works
 
 | | Windows | macOS |
@@ -105,7 +126,7 @@ FreeDPI is not a VPN. It does not hide your IP address or encrypt your traffic b
 
 ## Troubleshooting
 
-**"No setting worked on this network."** Check that your internet connection works, then try again. Choosing your region in Settings can help. If it still fails, open an issue with your country and provider.
+**"No setting worked on this network."** Check that your internet connection works, then try again. Choosing your region in Settings can help. If one of your test sites is down or not blocked for a different reason, turn it off and connect again. If it still fails, open an issue with your country and provider.
 
 **Windows: nothing works and Kaspersky is installed.** Kaspersky blocks the WinDivert network driver. Uninstalling Kaspersky completely is required. Disabling it is not enough.
 
@@ -117,7 +138,7 @@ FreeDPI is not a VPN. It does not hide your IP address or encrypt your traffic b
 
 FreeDPI is under active development. Bugs are fixed as they are reported, and fixes reach you through the automatic updater. If something does not work, please [open an issue](../../issues) with:
 
-- your operating system and FreeDPI version (shown at the bottom of Settings),
+- your operating system and FreeDPI version (shown next to the GitHub icon at the bottom of Settings),
 - your country and internet provider,
 - what you expected and what happened.
 
