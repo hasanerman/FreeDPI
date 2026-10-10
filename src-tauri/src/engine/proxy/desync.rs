@@ -17,7 +17,10 @@ pub struct Method {
     pub record: Option<Pos>,
     pub split: Option<Pos>,
     pub delay: Duration,
+    pub disorder: bool,
 }
+
+const DEFAULT_TTL: u32 = 64;
 
 impl Pos {
     fn parse(value: &str) -> Option<Self> {
@@ -45,6 +48,7 @@ impl Method {
                 "tlsrec" => method.record = Some(Pos::parse(value)?),
                 "split" => method.split = Some(Pos::parse(value)?),
                 "delay" => method.delay = Duration::from_millis(value.parse().ok()?),
+                "disorder" => method.disorder = value == "1",
                 _ => return None,
             }
         }
@@ -80,8 +84,16 @@ impl Method {
         let Some(at) = split else {
             return stream.write_all(&payload).await;
         };
+        let ttl = stream.ttl().unwrap_or(DEFAULT_TTL);
+        if self.disorder {
+            stream.set_ttl(1)?;
+        }
         stream.write_all(&payload[..at]).await?;
         stream.flush().await?;
+        if self.disorder {
+            tokio::time::sleep(Duration::from_millis(5)).await;
+            stream.set_ttl(ttl)?;
+        }
         if !self.delay.is_zero() {
             tokio::time::sleep(self.delay).await;
         }

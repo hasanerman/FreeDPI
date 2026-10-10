@@ -35,6 +35,17 @@ pub async fn reachable(urls: &[String], proxy_port: Option<u16>) -> bool {
         return false;
     };
 
+    for _ in 0..ROUNDS {
+        if !round(&client, urls).await {
+            return false;
+        }
+    }
+    true
+}
+
+const ROUNDS: usize = 2;
+
+async fn round(client: &reqwest::Client, urls: &[String]) -> bool {
     let checks: Vec<_> = urls
         .iter()
         .map(|url| {

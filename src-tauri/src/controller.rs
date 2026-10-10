@@ -64,7 +64,11 @@ pub struct Controller {
     status: Mutex<Status>,
     session: AsyncMutex<Option<Running>>,
     cancel: Mutex<Option<watch::Sender<bool>>>,
+    failures: Mutex<u32>,
+    demoted: Mutex<Option<String>>,
 }
+
+const MAX_FAILURES: u32 = 2;
 
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
@@ -96,6 +100,8 @@ impl Controller {
             status: Mutex::new(Status::new(Phase::Off)),
             session: AsyncMutex::new(None),
             cancel: Mutex::new(None),
+            failures: Mutex::new(0),
+            demoted: Mutex::new(None),
         })
     }
 
@@ -204,6 +210,35 @@ impl Controller {
         self.set_status(Status::new(Phase::Off));
     }
 
+    pub async fn health_check(&self) {
+        if self.status().phase != Phase::On {
+            *lock(&self.failures) = 0;
+            return;
+        }
+        let settings = self.settings();
+        let urls = catalog::target_urls(&settings.targets, &settings.custom);
+        let ok = probe::reachable(&urls, self.proxy_port().await).await;
+        if self.status().phase != Phase::On {
+            return;
+        }
+        {
+            let mut failures = lock(&self.failures);
+            if ok {
+                *failures = 0;
+                return;
+            }
+            *failures += 1;
+            if *failures < MAX_FAILURES {
+                return;
+            }
+            *failures = 0;
+        }
+        *lock(&self.demoted) = self.status().profile;
+        self.update(|s| s.profile = None);
+        self.disconnect().await;
+        self.connect().await;
+    }
+
     fn profile_number(&self, profile: &str) -> (usize, usize) {
         let all = Engine::profiles(self.settings().region);
         let index = all.iter().position(|p| *p == profile).map_or(0, |i| i + 1);
@@ -217,7 +252,13 @@ impl Controller {
     async fn search(&self, cancel: &mut watch::Receiver<bool>) -> Result<(Running, String), Stop> {
         let settings = self.settings();
         let urls = catalog::target_urls(&settings.targets, &settings.custom);
-        let profiles = catalog::ordered(Engine::profiles(settings.region), settings.profile.as_deref());
+        let mut profiles = catalog::ordered(Engine::profiles(settings.region), settings.profile.as_deref());
+        if let Some(demoted) = lock(&self.demoted).take() {
+            if let Some(index) = profiles.iter().position(|p| *p == demoted) {
+                let item = profiles.remove(index);
+                profiles.push(item);
+            }
+        }
         self.engine.prepare().await.map_err(Stop::Failed)?;
 
         let total = profiles.len();

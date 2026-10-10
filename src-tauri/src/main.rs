@@ -31,6 +31,13 @@ fn main() {
             let controller = Arc::new(Controller::new(app.handle())?);
             tray::create(app.handle(), &controller.settings())?;
             app.manage(controller.clone());
+            let watcher = controller.clone();
+            tauri::async_runtime::spawn(async move {
+                loop {
+                    tokio::time::sleep(std::time::Duration::from_secs(45)).await;
+                    watcher.health_check().await;
+                }
+            });
             if start_in_tray {
                 tauri::async_runtime::spawn(async move { controller.connect().await });
             } else {

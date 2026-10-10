@@ -13,14 +13,18 @@ pub enum Region {
 pub struct Target {
     pub id: &'static str,
     pub name: &'static str,
-    pub url: &'static str,
+    pub urls: &'static [&'static str],
 }
 
 pub const TARGETS: &[Target] = &[
-    Target { id: "discord", name: "Discord", url: "https://discord.com/api/v9/gateway" },
-    Target { id: "youtube", name: "YouTube", url: "https://www.youtube.com/generate_204" },
-    Target { id: "roblox", name: "Roblox", url: "https://www.roblox.com/" },
-    Target { id: "wattpad", name: "Wattpad", url: "https://www.wattpad.com/" },
+    Target {
+        id: "discord",
+        name: "Discord",
+        urls: &["https://discord.com/api/v9/gateway", "https://gateway.discord.gg/", "https://cdn.discordapp.com/"],
+    },
+    Target { id: "youtube", name: "YouTube", urls: &["https://www.youtube.com/generate_204"] },
+    Target { id: "roblox", name: "Roblox", urls: &["https://www.roblox.com/"] },
+    Target { id: "wattpad", name: "Wattpad", urls: &["https://www.wattpad.com/"] },
 ];
 
 #[cfg_attr(not(windows), allow(dead_code))]
@@ -46,13 +50,16 @@ pub fn goodbyedpi_profiles(region: Region) -> Vec<&'static str> {
 #[cfg_attr(windows, allow(dead_code))]
 pub fn proxy_profiles(_region: Region) -> Vec<&'static str> {
     vec![
-        "split=1",
+        "split=1 disorder=1",
+        "tlsrec=sni+1 split=sni+3 disorder=1",
+        "split=sni+1 disorder=1",
         "tlsrec=sni+1 split=1",
-        "split=2",
-        "split=1 delay=50",
+        "tlsrec=sni+1 split=sni+3",
+        "split=1",
         "split=sni+1",
         "tlsrec=sni+1",
-        "tlsrec=sni+1 split=sni+3",
+        "split=2",
+        "split=1 delay=50",
     ]
 }
 
@@ -68,11 +75,11 @@ pub fn target_urls(ids: &[String], custom: &[String]) -> Vec<String> {
     let mut urls: Vec<String> = TARGETS
         .iter()
         .filter(|t| ids.iter().any(|id| id == t.id))
-        .map(|t| t.url.to_string())
+        .flat_map(|t| t.urls.iter().map(|u| u.to_string()))
         .collect();
     urls.extend(custom.iter().filter_map(|d| normalize_domain(d)).map(|d| format!("https://{d}/")));
     if urls.is_empty() {
-        urls.push(TARGETS[0].url.to_string());
+        urls.extend(TARGETS[0].urls.iter().map(|u| u.to_string()));
     }
     urls
 }
@@ -128,6 +135,7 @@ mod tests {
 
     #[test]
     fn empty_selection_falls_back_to_discord() {
-        assert_eq!(target_urls(&[], &[]), vec![TARGETS[0].url.to_string()]);
+        let expected: Vec<String> = TARGETS[0].urls.iter().map(|u| u.to_string()).collect();
+        assert_eq!(target_urls(&[], &[]), expected);
     }
 }

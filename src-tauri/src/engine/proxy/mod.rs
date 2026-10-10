@@ -286,6 +286,15 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
+    async fn serve_for_manual_testing() {
+        let spec = std::env::var("FREEDPI_METHOD").unwrap_or_else(|_| "split=1".into());
+        let server = Server::start(Method::parse(&spec).unwrap(), Arc::new(Resolver::new())).await.unwrap();
+        eprintln!("listening on {} with {spec}", server.port());
+        tokio::time::sleep(Duration::from_secs(90)).await;
+    }
+
+    #[tokio::test]
+    #[ignore]
     async fn reaches_discord_through_proxy() {
         let resolver = Arc::new(Resolver::new());
         let urls = vec!["https://discord.com/api/v9/gateway".to_string()];
