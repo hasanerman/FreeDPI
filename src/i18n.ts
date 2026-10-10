@@ -43,6 +43,7 @@ const en = {
     russia: "Russia",
     other: "Other",
   } satisfies Record<Region, string>,
+  advanced: "Advanced",
   sites: "Test sites",
   sitesHint:
     "FreeDPI works for every site. These are only used to check which setting works on your network.",
@@ -106,6 +107,7 @@ const tr: Strings = {
     russia: "Rusya",
     other: "Diğer",
   },
+  advanced: "Gelişmiş",
   sites: "Test siteleri",
   sitesHint:
     "FreeDPI bütün sitelerde çalışır. Bunlar sadece ağında hangi ayarın çalıştığını denemek için kullanılır.",
@@ -167,6 +169,7 @@ const ru: Strings = {
     russia: "Россия",
     other: "Другой",
   },
+  advanced: "Дополнительно",
   sites: "Тестовые сайты",
   sitesHint:
     "FreeDPI работает для всех сайтов. Эти сайты нужны только для проверки, какая настройка работает в вашей сети.",

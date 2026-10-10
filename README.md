@@ -37,7 +37,7 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 - **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter.
 - **Runs in the background.** Closing the window keeps FreeDPI running in the system tray on Windows and in the menu bar on macOS. Connect, disconnect, open and quit from the tray menu.
 - **Start with system.** Optionally starts when you log in and connects on its own.
-- **Works for every site.** FreeDPI is not limited to a list. The test sites in Settings are only used to check which setting works on your network, and you can add any domain as a test site.
+- **Works for every site.** FreeDPI is not limited to a list. The test sites under Settings > Advanced are only used to check which setting works on your network, and you can add any domain as a test site.
 - **DNS protection.** Name lookups avoid your provider's DNS, so poisoned answers cannot redirect you to a block page.
 - **Automatic updates.** New versions are announced inside the app and install with one click. Every update is signed and verified before it is installed.
 - **Installer.** Start menu and desktop shortcuts on Windows, a standard app bundle on macOS, and a clean uninstaller.
@@ -85,7 +85,7 @@ Download the latest version from [Releases](../../releases/latest).
 
 **Region** decides which settings are tried first. Auto tries all of them and works everywhere, so you only need to change it if connecting takes long.
 
-**Test sites** are the sites FreeDPI opens to confirm that a setting works. They do not limit what gets unblocked: once connected, FreeDPI works for every site. Turn on the sites you care about most, and add a domain if a site you use is blocked but not in the list.
+**Test sites**, under **Advanced**, are the sites FreeDPI opens to confirm that a setting works. They do not limit what gets unblocked: once connected, FreeDPI works for every site. Turn on the sites you care about most, and add a domain if a site you use is blocked but not in the list.
 
 **Language** switches between English, Turkish and Russian.
 
@@ -95,11 +95,11 @@ The GitHub icon at the bottom of Settings opens this repository.
 
 A few antivirus engines may flag the Windows installer. On VirusTotal, version 0.1.5 was flagged by 2 of 71 engines, both machine-learning based (SecureAge and Trapmine). Major engines such as Microsoft Defender, Kaspersky, BitDefender, ESET and Avast reported it as clean.
 
-This is a false positive, and it happens for three reasons:
+This is a false positive. Machine-learning scanners judge files by how they look rather than by known threats, and the FreeDPI installer has several traits they weigh as risky:
 
-- FreeDPI ships the WinDivert network driver, which intercepts and modifies packets. Heuristic scanners treat any program that does this as suspicious. GoodbyeDPI itself receives the same warnings.
-- The app asks for administrator rights, which the driver needs.
-- The installer is not code-signed yet.
+- It is a new file with no reputation yet, and every release produces a new one.
+- It is an installer that unpacks other programs, including a network driver, and asks for administrator rights.
+- It is not code-signed yet.
 
 The full source code is in this repository, and the bundled third-party binaries are listed with their checksums in [third_party](third_party/README.md), so you can verify everything yourself. Code signing is planned and should remove most of these warnings.
 

@@ -40,9 +40,41 @@ jobs:
 
       - run: cargo test --manifest-path src-tauri/Cargo.toml
 
-  bundle:
+  release:
     needs: test
     if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.create.outputs.result }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: create
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { version } = require('./package.json')
+            const tag = `v${version}`
+            const { owner, repo } = context.repo
+            const releases = await github.paginate(github.rest.repos.listReleases, { owner, repo })
+            const existing = releases.find((r) => r.tag_name === tag)
+            if (existing) {
+              await github.rest.repos.updateRelease({ owner, repo, release_id: existing.id, draft: true })
+              return existing.id
+            }
+            const { data } = await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tag,
+              target_commitish: context.sha,
+              name: `FreeDPI ${tag}`,
+              body: `FreeDPI ${tag}`,
+              draft: true,
+            })
+            return data.id
+
+  bundle:
+    needs: release
     strategy:
       fail-fast: false
       matrix:
@@ -81,13 +113,26 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           args: ${{ matrix.args }}
-          tagName: v__VERSION__
-          releaseName: FreeDPI v__VERSION__
-          releaseBody: FreeDPI v__VERSION__
-          releaseDraft: false
+          releaseId: ${{ needs.release.outputs.id }}
 
       - uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.path }}
           if-no-files-found: error
+
+  publish:
+    needs: [release, bundle]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: Number('${{ needs.release.outputs.id }}'),
+              draft: false,
+              make_latest: 'true',
+            })

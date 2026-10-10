@@ -455,6 +455,39 @@ body.ready .app {
   margin: -4px 0 10px;
 }
 
+.advanced summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced summary:hover {
+  color: var(--text);
+}
+
+.advanced summary svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s var(--ease);
+}
+
+.advanced[open] summary {
+  margin-bottom: 14px;
+}
+
+.advanced[open] summary svg {
+  transform: rotate(90deg);
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;

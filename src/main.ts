@@ -33,6 +33,7 @@ const ui = {
   sitesTitle: byId("lbl-sites"),
   sitesHint: byId("lbl-sites-hint"),
   siteTiles: byId("site-tiles"),
+  advancedTitle: byId("lbl-advanced"),
   addForm: byId<HTMLFormElement>("add-form"),
   addInput: byId<HTMLInputElement>("add-input"),
   addButton: byId<HTMLButtonElement>("btn-add"),
@@ -171,6 +172,7 @@ function renderSettings() {
   chips(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
   ui.languageTitle.textContent = s.language;
   chips(ui.language, languages, language(), (next) => void changeLanguage(next));
+  ui.advancedTitle.textContent = s.advanced;
   ui.sitesTitle.textContent = s.sites;
   ui.sitesHint.textContent = s.sitesHint;
   renderSites();
