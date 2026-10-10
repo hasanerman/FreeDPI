@@ -107,5 +107,8 @@ export function mockBackend(): Backend {
     },
     onUpdate() {},
     async openDiscord() {},
+    async openRepository() {
+      window.open("https://github.com/hasanerman/FreeDPI", "_blank");
+    },
   };
 }

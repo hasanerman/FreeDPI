@@ -32,6 +32,22 @@ pub fn relaunch_discord(port: u16) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+pub const REPOSITORY: &str = "https://github.com/hasanerman/FreeDPI";
+
+pub fn open_repository() -> Result<(), String> {
+    #[cfg(windows)]
+    let program = "explorer.exe";
+    #[cfg(target_os = "macos")]
+    let program = "/usr/bin/open";
+    #[cfg(not(any(windows, target_os = "macos")))]
+    let program = "xdg-open";
+    std::process::Command::new(program)
+        .arg(REPOSITORY)
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
 #[cfg(not(target_os = "macos"))]
 pub fn relaunch_discord(_port: u16) -> Result<(), String> {
     Err("unsupported".into())

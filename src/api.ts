@@ -22,6 +22,7 @@ function tauriBackend(): Backend {
     },
     installUpdate: () => invoke("install_update"),
     openDiscord: () => invoke("open_discord"),
+    openRepository: () => invoke("open_repository"),
     onUpdate: (handler) => {
       void listen<UpdateInfo>("update", (event) => handler(event.payload));
     },

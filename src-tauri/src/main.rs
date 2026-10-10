@@ -61,6 +61,7 @@ fn main() {
             commands::quit,
             commands::install_update,
             commands::open_discord,
+            commands::open_repository,
         ])
         .build(tauri::generate_context!())
         .expect("failed to start FreeDPI");

@@ -29,6 +29,11 @@ pub struct Snapshot {
 }
 
 #[tauri::command]
+pub fn open_repository() -> Result<(), String> {
+    crate::apps::open_repository()
+}
+
+#[tauri::command]
 pub async fn open_discord(controller: Ctl<'_>) -> Result<(), String> {
     let port = controller.proxy_port().await.ok_or("not_connected")?;
     tokio::task::spawn_blocking(move || crate::apps::relaunch_discord(port))

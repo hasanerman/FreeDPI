@@ -2,7 +2,7 @@ export type Phase = "off" | "connecting" | "on" | "stopping" | "error";
 
 export type Region = "auto" | "turkey" | "russia" | "other";
 
-export type Language = "en" | "tr";
+export type Language = "en" | "tr" | "ru";
 
 export interface Status {
   phase: Phase;
@@ -59,5 +59,6 @@ export interface Backend {
   onSettings(handler: (settings: Settings) => void): void;
   installUpdate(): Promise<void>;
   openDiscord(): Promise<void>;
+  openRepository(): Promise<void>;
   onUpdate(handler: (update: UpdateInfo) => void): void;
 }

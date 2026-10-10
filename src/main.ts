@@ -3,6 +3,14 @@ import { format, languages, resolveLanguage, strings } from "./i18n";
 import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status, UpdateInfo } from "./types";
 
 const REGIONS: Region[] = ["auto", "turkey", "russia", "other"];
+const CHECK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
+const SITE_COLORS: Record<string, string> = {
+  discord: "#5865f2",
+  youtube: "#ff3b3b",
+  roblox: "#9aa1b0",
+  wattpad: "#ff6a1f",
+};
+const CUSTOM_COLOR = "#4c8dff";
 const REMOVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" /></svg>';
 const DOMAIN = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/;
 
@@ -23,14 +31,15 @@ const ui = {
   sheet: byId("sheet"),
   settingsTitle: byId("lbl-settings"),
   pending: byId("lbl-pending"),
-  generalTitle: byId("lbl-general"),
-  regionLabel: byId("lbl-region"),
-  region: byId<HTMLSelectElement>("region"),
-  languageLabel: byId("lbl-language"),
-  language: byId<HTMLSelectElement>("language"),
+  regionTitle: byId("lbl-region"),
+  regionHint: byId("lbl-region-hint"),
+  region: byId("region"),
+  languageTitle: byId("lbl-language"),
+  language: byId("language"),
+  source: byId<HTMLButtonElement>("btn-source"),
   sitesTitle: byId("lbl-sites"),
   sitesHint: byId("lbl-sites-hint"),
-  siteRows: byId("site-rows"),
+  siteTiles: byId("site-tiles"),
   addForm: byId<HTMLFormElement>("add-form"),
   addInput: byId<HTMLInputElement>("add-input"),
   addButton: byId<HTMLButtonElement>("btn-add"),
@@ -90,57 +99,69 @@ function renderStatus() {
   ui.discord.textContent = s.openDiscord;
 }
 
-function fillSelect<T extends string>(select: HTMLSelectElement, options: { id: T; label: string }[], active: T) {
-  select.replaceChildren(
+function chips<T extends string>(
+  container: HTMLElement,
+  options: { id: T; label: string }[],
+  active: T,
+  select: (id: T) => void,
+) {
+  container.replaceChildren(
     ...options.map((option) => {
-      const element = document.createElement("option");
-      element.value = option.id;
-      element.textContent = option.label;
-      element.selected = option.id === active;
-      return element;
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = option.label;
+      chip.classList.toggle("active", option.id === active);
+      chip.setAttribute("aria-pressed", String(option.id === active));
+      chip.addEventListener("click", () => {
+        if (option.id !== active) select(option.id);
+      });
+      return chip;
     }),
   );
 }
 
-function siteRow(name: string, control: HTMLElement): HTMLElement {
-  const row = document.createElement("label");
-  row.className = "item";
+function tile(name: string, color: string, active: boolean, trailing: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "tile";
+  button.classList.toggle("active", active);
+  button.setAttribute("aria-pressed", String(active));
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.style.setProperty("--badge", color);
+  badge.textContent = name.charAt(0).toUpperCase();
   const label = document.createElement("span");
+  label.className = "tile-name";
   label.textContent = name;
-  row.append(label, control);
-  return row;
+  const mark = document.createElement("span");
+  mark.className = "mark-icon";
+  mark.innerHTML = trailing;
+  button.append(badge, label, mark);
+  return button;
 }
 
 function renderSites() {
   const s = text();
   const presets = snapshot.targets.map((target) => {
-    const toggle = document.createElement("input");
-    toggle.type = "checkbox";
-    toggle.className = "switch";
-    toggle.checked = settings.targets.includes(target.id);
-    toggle.addEventListener("change", () => {
-      const targets = toggle.checked
-        ? [...settings.targets, target.id]
-        : settings.targets.filter((id) => id !== target.id);
+    const active = settings.targets.includes(target.id);
+    const button = tile(target.name, SITE_COLORS[target.id] ?? CUSTOM_COLOR, active, CHECK_ICON);
+    button.addEventListener("click", () => {
+      const targets = active ? settings.targets.filter((id) => id !== target.id) : [...settings.targets, target.id];
       void save({ targets });
     });
-    return siteRow(target.name, toggle);
+    return button;
   });
 
   const custom = settings.custom.map((domain) => {
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "remove";
-    remove.title = s.remove;
-    remove.setAttribute("aria-label", `${s.remove} ${domain}`);
-    remove.innerHTML = REMOVE_ICON;
-    remove.addEventListener("click", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
-    const row = siteRow(domain, remove);
-    row.classList.add("custom");
-    return row;
+    const button = tile(domain, CUSTOM_COLOR, true, REMOVE_ICON);
+    button.classList.add("custom");
+    button.title = `${s.remove} ${domain}`;
+    button.addEventListener("click", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
+    return button;
   });
 
-  ui.siteRows.replaceChildren(...presets, ...custom);
+  ui.siteTiles.replaceChildren(...presets, ...custom);
 }
 
 function renderSettings() {
@@ -156,17 +177,19 @@ function renderSettings() {
   ui.back.setAttribute("aria-label", s.back);
   ui.settingsTitle.textContent = s.settings;
   ui.pending.textContent = s.pending;
-  ui.generalTitle.textContent = s.general;
-  ui.regionLabel.textContent = s.region;
-  fillSelect(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region);
-  ui.languageLabel.textContent = s.language;
-  fillSelect(ui.language, languages, language());
+  ui.regionTitle.textContent = s.region;
+  ui.regionHint.textContent = s.regionHint;
+  chips(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
+  ui.languageTitle.textContent = s.language;
+  chips(ui.language, languages, language(), (next) => void changeLanguage(next));
   ui.sitesTitle.textContent = s.sites;
   ui.sitesHint.textContent = s.sitesHint;
   renderSites();
   ui.addInput.placeholder = s.addPlaceholder;
-  ui.addButton.textContent = s.add;
+  ui.addButton.title = s.addSite;
+  ui.addButton.setAttribute("aria-label", s.addSite);
   ui.version.textContent = `FreeDPI ${snapshot.version}`;
+  ui.source.title = s.source;
   ui.quit.textContent = s.quit;
 }
 
@@ -203,6 +226,11 @@ async function save(change: Partial<Preferences>) {
     ...change,
   };
   settings = await backend.savePreferences(preferences);
+  render();
+}
+
+async function changeLanguage(next: Language) {
+  settings = await backend.setLanguage(next);
   render();
 }
 
@@ -262,11 +290,7 @@ function bind() {
     render();
   });
 
-  ui.region.addEventListener("change", () => void save({ region: ui.region.value as Region }));
-  ui.language.addEventListener("change", async () => {
-    settings = await backend.setLanguage(ui.language.value as Language);
-    render();
-  });
+  ui.source.addEventListener("click", () => void backend.openRepository());
 
   ui.openSettings.addEventListener("click", () => openSheet(true));
   ui.back.addEventListener("click", () => openSheet(false));

@@ -404,7 +404,7 @@ body.ready .app {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 12px 6px 8px;
+  padding: 0 12px 4px 8px;
 }
 
 .sheet-head h2 {
@@ -416,115 +416,192 @@ body.ready .app {
 .sheet-body {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 16px 16px;
+  padding: 4px 20px 12px;
+  scrollbar-width: none;
+}
+
+.sheet-body::-webkit-scrollbar {
+  display: none;
 }
 
 .pending {
-  margin: 0 4px 14px;
+  margin: 0 0 10px;
   color: #8fb2f5;
   font-size: 12px;
 }
 
-.section {
-  margin-bottom: 20px;
+.block {
+  padding: 11px 0;
 }
 
-.section h3 {
-  margin: 0 4px 8px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.card {
-  overflow: hidden;
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
-  background: var(--surface);
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 12px 0 14px;
-  cursor: pointer;
-}
-
-.item + .item,
-#site-rows:not(:empty) + .item,
-#site-rows .item + .item {
+.block + .block {
   border-top: 1px solid var(--line);
 }
 
-.item.custom span {
-  color: var(--soft);
-  user-select: text;
+.block h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.select {
-  appearance: none;
-  min-width: 0;
+.hint {
+  margin: 8px 0 0;
+  color: var(--faint);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.hint.top {
+  margin: -4px 0 10px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
   height: 30px;
-  padding: 0 22px 0 8px;
-  border: 0;
-  border-radius: 7px;
-  outline: none;
-  background: transparent
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa1b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E")
-    no-repeat right 2px center / 16px;
+  padding: 0 13px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: transparent;
   color: var(--soft);
-  text-align: right;
-  cursor: pointer;
+  font-size: 12.5px;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
-.select:hover,
-.select:focus-visible {
-  background-color: var(--surface-2);
+.chip:hover {
+  border-color: #3a404d;
   color: var(--text);
 }
 
-.select option {
-  background: var(--surface);
-  color: var(--text);
+.chip.active {
+  border-color: rgba(46, 209, 115, 0.55);
+  background: rgba(46, 209, 115, 0.1);
+  color: #9be8bd;
 }
 
-.remove {
+.tiles {
   display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--soft);
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.tile:hover {
+  border-color: #3a404d;
+}
+
+.tile.active {
+  border-color: rgba(46, 209, 115, 0.45);
+  background: rgba(46, 209, 115, 0.06);
+  color: var(--text);
+}
+
+.badge {
+  display: grid;
+  flex: none;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 0;
+  width: 24px;
+  height: 24px;
   border-radius: 7px;
+  background: var(--badge);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
+.tile.active .badge {
+  opacity: 1;
+}
+
+.tile-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mark-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #3a404d;
+  border-radius: 50%;
+  color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.mark-icon svg {
+  width: 11px;
+  height: 11px;
+  stroke-width: 3;
+}
+
+.tile.active .mark-icon {
+  border-color: var(--green);
+  background: var(--green);
+  color: #06210f;
+}
+
+.tile.custom .mark-icon {
+  border-color: transparent;
   background: transparent;
   color: var(--muted);
 }
 
-.remove:hover {
-  background: var(--surface-2);
+.tile.custom:hover .mark-icon {
   color: var(--red);
 }
 
-.remove svg {
-  width: 14px;
-  height: 14px;
+.add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  margin-top: 8px;
+  padding: 0 4px 0 12px;
+  border: 1px dashed #333946;
+  border-radius: 11px;
+  transition: border-color 0.15s ease;
 }
 
-.add {
-  cursor: text;
+.add:focus-within {
+  border-color: #4a5160;
+  border-style: solid;
 }
 
 .add input {
   flex: 1;
   min-width: 0;
-  height: 42px;
+  height: 100%;
   padding: 0;
   border: 0;
   outline: none;
   background: transparent;
+  font-size: 12.5px;
   user-select: text;
 }
 
@@ -536,49 +613,74 @@ body.ready .app {
   color: var(--red);
 }
 
-.link-btn {
-  padding: 5px 8px;
+.add-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border: 0;
-  border-radius: 7px;
+  border-radius: 8px;
   background: transparent;
   color: var(--green);
-  font-size: 12.5px;
-  font-weight: 600;
 }
 
-.link-btn:hover {
+.add-btn:hover {
   background: rgba(46, 209, 115, 0.1);
 }
 
-.hint {
-  margin: 8px 4px 0;
-  color: var(--faint);
-  font-size: 12px;
-  line-height: 1.5;
+.add-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .sheet-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px 12px 20px;
+  padding: 8px 12px 10px 14px;
   border-top: 1px solid var(--line);
-  color: var(--faint);
+}
+
+.source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
   font-size: 12px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.source:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.github {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: none;
 }
 
 .text-btn {
-  padding: 6px 10px;
+  height: 30px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 8px;
   background: transparent;
-  color: var(--soft);
-  font-size: 12.5px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .text-btn:hover {
-  background: var(--surface-2);
-  color: var(--text);
+  background: rgba(240, 82, 82, 0.1);
+  color: #f07a7a;
 }
 
 :focus-visible {

@@ -42,8 +42,26 @@ const TR: Labels = Labels {
     quit: "Çıkış",
 };
 
+const RU: Labels = Labels {
+    off: "Выключено",
+    connecting: "Подключение…",
+    on: "Подключено",
+    stopping: "Отключение…",
+    error: "Не подключено",
+    connect: "Подключить",
+    disconnect: "Отключить",
+    cancel: "Отмена",
+    open: "Открыть FreeDPI",
+    autostart: "Запускать вместе с системой",
+    quit: "Выход",
+};
+
 pub fn labels(language: &str) -> &'static Labels {
-    if language == "tr" { &TR } else { &EN }
+    match language {
+        "tr" => &TR,
+        "ru" => &RU,
+        _ => &EN,
+    }
 }
 
 impl Labels {

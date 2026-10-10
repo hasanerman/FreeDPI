@@ -77,7 +77,15 @@ impl Settings {
     }
 
     pub fn set_language(&mut self, lang: &str) {
-        self.language = if lang.to_ascii_lowercase().starts_with("tr") { "tr" } else { "en" }.into();
+        let lang = lang.to_ascii_lowercase();
+        self.language = if lang.starts_with("tr") {
+            "tr"
+        } else if lang.starts_with("ru") {
+            "ru"
+        } else {
+            "en"
+        }
+        .into();
     }
 }
 
@@ -104,6 +112,8 @@ mod tests {
         let mut settings = Settings::default();
         settings.set_language("tr-TR");
         assert_eq!(settings.language, "tr");
+        settings.set_language("ru-RU");
+        assert_eq!(settings.language, "ru");
         settings.set_language("de-DE");
         assert_eq!(settings.language, "en");
     }
