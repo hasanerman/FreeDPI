@@ -4,7 +4,21 @@ use super::EngineError;
 
 const NETWORKSETUP: &str = "/usr/sbin/networksetup";
 
+const PROXY_VARS: &[&str] = &["HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "https_proxy", "http_proxy"];
+
+fn set_session_proxy(value: Option<&str>) {
+    for name in PROXY_VARS {
+        let mut command = Command::new("/bin/launchctl");
+        match value {
+            Some(url) => command.args(["setenv", name, url]),
+            None => command.args(["unsetenv", name]),
+        };
+        let _ = command.status();
+    }
+}
+
 pub fn enable(port: u16) -> Result<(), EngineError> {
+    set_session_proxy(Some(&format!("http://127.0.0.1:{port}")));
     let port = port.to_string();
     let commands: Vec<Vec<String>> = services()
         .into_iter()
@@ -19,6 +33,7 @@ pub fn enable(port: u16) -> Result<(), EngineError> {
 }
 
 pub fn disable() -> Result<(), EngineError> {
+    set_session_proxy(None);
     let commands: Vec<Vec<String>> = services()
         .into_iter()
         .flat_map(|service| {
