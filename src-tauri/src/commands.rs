@@ -78,7 +78,12 @@ pub fn connect(controller: Ctl<'_>) {
 #[tauri::command]
 pub fn disconnect(controller: Ctl<'_>) {
     let controller = controller.inner().clone();
-    tauri::async_runtime::spawn(async move { controller.disconnect().await });
+    tauri::async_runtime::spawn(async move { controller.disconnect_by_user().await });
+}
+
+#[tauri::command]
+pub fn set_notifications(enabled: bool, controller: Ctl<'_>) -> Settings {
+    controller.set_notifications(enabled)
 }
 
 #[tauri::command]

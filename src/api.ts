@@ -12,6 +12,7 @@ function tauriBackend(): Backend {
     savePreferences: (preferences) => invoke("save_preferences", { preferences }),
     setLanguage: (language) => invoke("set_language", { language }),
     setAutostart: (enabled) => invoke("set_autostart", { enabled }),
+    setNotifications: (enabled) => invoke("set_notifications", { enabled }),
     quit: () => invoke("quit"),
     hide: () => getCurrentWindow().hide(),
     onStatus: (handler) => {

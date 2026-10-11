@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.17
+
+- Notifications when FreeDPI connects, disconnects or cannot connect.
+- Turn notifications on or off under Settings > Notifications.
+
 ## 0.1.16
 
 - Shows how long you have been connected.

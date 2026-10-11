@@ -15,6 +15,9 @@ pub struct Labels {
     pub lost: &'static str,
     pub restored: &'static str,
     pub failed: &'static str,
+    pub connected: &'static str,
+    pub disconnected: &'static str,
+    pub not_connected: &'static str,
 }
 
 const EN: Labels = Labels {
@@ -32,6 +35,9 @@ const EN: Labels = Labels {
     lost: "The connection stopped working. Looking for another setting…",
     restored: "Connected again.",
     failed: "Could not reconnect. Open FreeDPI to try again.",
+    connected: "Connected. Blocked sites should open now.",
+    disconnected: "Disconnected.",
+    not_connected: "Could not connect. Open FreeDPI for details.",
 };
 
 const TR: Labels = Labels {
@@ -49,6 +55,9 @@ const TR: Labels = Labels {
     lost: "Bağlantı çalışmayı bıraktı. Başka bir ayar aranıyor…",
     restored: "Yeniden bağlandı.",
     failed: "Yeniden bağlanılamadı. Tekrar denemek için FreeDPI'ı aç.",
+    connected: "Bağlandı. Engelli siteler artık açılır.",
+    disconnected: "Bağlantı kesildi.",
+    not_connected: "Bağlanılamadı. Ayrıntılar için FreeDPI'ı aç.",
 };
 
 const RU: Labels = Labels {
@@ -66,6 +75,9 @@ const RU: Labels = Labels {
     lost: "Соединение перестало работать. Ищем другую настройку…",
     restored: "Снова подключено.",
     failed: "Не удалось переподключиться. Откройте FreeDPI, чтобы попробовать снова.",
+    connected: "Подключено. Заблокированные сайты теперь открываются.",
+    disconnected: "Отключено.",
+    not_connected: "Не удалось подключиться. Подробности в FreeDPI.",
 };
 
 pub fn labels(language: &str) -> &'static Labels {

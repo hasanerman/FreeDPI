@@ -29,6 +29,7 @@ export function mockBackend(): Backend {
     language: params.get("lang") ?? "",
     profile: null,
     engineActive: false,
+    notifications: true,
   };
   const statusHandlers: ((status: Status) => void)[] = [];
   const settingsHandlers: ((settings: Settings) => void)[] = [];
@@ -94,6 +95,9 @@ export function mockBackend(): Backend {
     },
     async setAutostart(enabled) {
       return update({ autostart: enabled });
+    },
+    async setNotifications(enabled) {
+      return update({ notifications: enabled });
     },
     async quit() {},
     async hide() {},

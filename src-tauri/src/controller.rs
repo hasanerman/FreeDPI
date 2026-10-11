@@ -178,10 +178,30 @@ impl Controller {
         result.map(|_| settings)
     }
 
+    fn notify(&self, body: &str) {
+        if self.settings().notifications {
+            notify::show(&self.app, body);
+        }
+    }
+
+    pub fn set_notifications(&self, enabled: bool) -> Settings {
+        let settings = self.update(|s| s.notifications = enabled);
+        self.publish();
+        settings
+    }
+
+    pub async fn disconnect_by_user(&self) {
+        let was = self.status().phase;
+        self.disconnect().await;
+        if was == Phase::On {
+            self.notify(i18n::labels(&self.settings().language).disconnected);
+        }
+    }
+
     pub async fn toggle(&self) {
         match self.status().phase {
             Phase::Off | Phase::Error => self.connect().await,
-            Phase::Connecting | Phase::On => self.disconnect().await,
+            Phase::Connecting | Phase::On => self.disconnect_by_user().await,
             Phase::Stopping => {}
         }
     }
@@ -203,13 +223,13 @@ impl Controller {
         *lock(&self.cancel) = None;
 
         let recovering = std::mem::take(&mut *lock(&self.recovering));
-        if recovering {
-            let labels = i18n::labels(&self.settings().language);
-            match &result {
-                Ok(_) => notify::show(&self.app, labels.restored),
-                Err(Stop::Failed(_)) => notify::show(&self.app, labels.failed),
-                Err(Stop::Cancelled) => {}
-            }
+        let labels = i18n::labels(&self.settings().language);
+        match (&result, recovering) {
+            (Ok(_), true) => self.notify(labels.restored),
+            (Ok(_), false) => self.notify(labels.connected),
+            (Err(Stop::Failed(_)), true) => self.notify(labels.failed),
+            (Err(Stop::Failed(_)), false) => self.notify(labels.not_connected),
+            (Err(Stop::Cancelled), _) => {}
         }
 
         match result {
@@ -304,7 +324,7 @@ impl Controller {
         }
         log::write("searching for a new setting");
         *lock(&self.recovering) = true;
-        notify::show(&self.app, i18n::labels(&self.settings().language).lost);
+        self.notify(i18n::labels(&self.settings().language).lost);
         if limit > 1 {
             *lock(&self.demoted) = self.status().profile;
             self.update(|s| s.profile = None);

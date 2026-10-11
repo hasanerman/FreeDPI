@@ -17,6 +17,7 @@ pub struct Settings {
     pub language: String,
     pub profile: Option<String>,
     pub engine_active: bool,
+    pub notifications: bool,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -40,6 +41,7 @@ impl Default for Settings {
             language: String::new(),
             profile: None,
             engine_active: false,
+            notifications: true,
         }
     }
 }

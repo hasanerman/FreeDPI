@@ -60,6 +60,7 @@ fn main() {
             commands::save_preferences,
             commands::set_language,
             commands::set_autostart,
+            commands::set_notifications,
             commands::quit,
             commands::install_update,
             commands::open_discord,

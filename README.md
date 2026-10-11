@@ -92,6 +92,8 @@ Download the latest version from [Releases](../../releases/latest).
 
 **Help**, also under **Advanced**, has a button that copies diagnostics (version, settings, status and recent log lines, with no personal data) and a button that opens a new issue on GitHub.
 
+**Notifications** turns the connect, disconnect and reconnect notifications on or off.
+
 **Language** switches between English, Turkish and Russian.
 
 The GitHub icon at the bottom of Settings opens this repository.

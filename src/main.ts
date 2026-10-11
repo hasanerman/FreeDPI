@@ -61,6 +61,11 @@ const ui = {
   themeHint: byId("lbl-theme-hint"),
   theme: byId("theme"),
   valTheme: byId("val-theme"),
+  notificationsTitle: byId("lbl-notifications"),
+  notificationsValue: byId("val-notifications"),
+  notificationsLabel: byId("lbl-notify-toggle"),
+  notificationsHint: byId("lbl-notifications-hint"),
+  notifications: byId<HTMLInputElement>("chk-notifications"),
 };
 
 function storedTheme(): Theme {
@@ -231,6 +236,11 @@ function renderSettings() {
   ui.regionHint.textContent = s.regionHint;
   ui.valRegion.textContent = s.regions[settings.region];
   choices(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
+  ui.notificationsTitle.textContent = s.notifications;
+  ui.notificationsValue.textContent = settings.notifications ? s.on : s.off;
+  ui.notificationsLabel.textContent = s.notificationsToggle;
+  ui.notificationsHint.textContent = s.notificationsHint;
+  ui.notifications.checked = settings.notifications;
   ui.themeTitle.textContent = s.theme;
   ui.themeHint.textContent = s.themeHint;
   ui.valTheme.textContent = s.themes[theme];
@@ -388,6 +398,10 @@ function bind() {
     }, 2500);
   });
   ui.selective.addEventListener("change", () => void save({ selective: ui.selective.checked }));
+  ui.notifications.addEventListener("change", async () => {
+    settings = await backend.setNotifications(ui.notifications.checked);
+    render();
+  });
 
   ui.openSettings.addEventListener("click", () => openSheet(true));
   document.querySelectorAll<HTMLDetailsElement>("details.acc").forEach((details) =>
