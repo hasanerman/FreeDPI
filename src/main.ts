@@ -34,6 +34,10 @@ const ui = {
   sitesHint: byId("lbl-sites-hint"),
   siteTiles: byId("site-tiles"),
   advancedTitle: byId("lbl-advanced"),
+  valRegion: byId("val-region"),
+  valLanguage: byId("val-language"),
+  valAdvanced: byId("val-advanced"),
+  languageHint: byId("lbl-language-hint"),
   selective: byId<HTMLInputElement>("chk-selective"),
   selectiveLabel: byId("lbl-selective"),
   selectiveHint: byId("lbl-selective-hint"),
@@ -80,6 +84,13 @@ function detailText(): string {
 
 function renderStatus() {
   const s = text();
+  if (ui.app.dataset.phase !== status.phase) {
+    for (const element of [ui.title, ui.detail]) {
+      element.classList.remove("rise");
+      void element.offsetWidth;
+      element.classList.add("rise");
+    }
+  }
   ui.app.dataset.phase = status.phase;
   ui.title.textContent = s.phase[status.phase];
   ui.detail.textContent = detailText();
@@ -96,64 +107,59 @@ function renderStatus() {
   ui.discord.textContent = s.openDiscord;
 }
 
-function chips<T extends string>(
+function option(label: string, selected: boolean, mark: "radio" | "check" | "remove", onClick: () => void): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `opt ${mark}`;
+  button.classList.toggle("selected", selected);
+  button.setAttribute("aria-pressed", String(selected));
+  const indicator = document.createElement("span");
+  indicator.className = "indicator";
+  if (mark === "check") indicator.innerHTML = CHECK_ICON;
+  if (mark === "remove") indicator.innerHTML = REMOVE_ICON;
+  const text = document.createElement("span");
+  text.className = "opt-label";
+  text.textContent = label;
+  if (mark === "remove") button.append(text, indicator);
+  else button.append(indicator, text);
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+function choices<T extends string>(
   container: HTMLElement,
-  options: { id: T; label: string }[],
+  items: { id: T; label: string }[],
   active: T,
   select: (id: T) => void,
 ) {
   container.replaceChildren(
-    ...options.map((option) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "chip";
-      chip.textContent = option.label;
-      chip.classList.toggle("active", option.id === active);
-      chip.setAttribute("aria-pressed", String(option.id === active));
-      chip.addEventListener("click", () => {
-        if (option.id !== active) select(option.id);
-      });
-      return chip;
-    }),
+    ...items.map((item) =>
+      option(item.label, item.id === active, "radio", () => {
+        closeAccordions();
+        if (item.id !== active) select(item.id);
+      }),
+    ),
   );
 }
 
-function tile(name: string, active: boolean, trailing: string): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "tile";
-  button.classList.toggle("active", active);
-  button.setAttribute("aria-pressed", String(active));
-  const label = document.createElement("span");
-  label.className = "tile-name";
-  label.textContent = name;
-  const mark = document.createElement("span");
-  mark.className = "mark-icon";
-  mark.innerHTML = trailing;
-  button.append(label, mark);
-  return button;
+function closeAccordions() {
+  document.querySelectorAll<HTMLDetailsElement>("details.acc").forEach((d) => (d.open = false));
 }
 
 function renderSites() {
   const s = text();
   const presets = snapshot.targets.map((target) => {
     const active = settings.targets.includes(target.id);
-    const button = tile(target.name, active, CHECK_ICON);
-    button.addEventListener("click", () => {
+    return option(target.name, active, "check", () => {
       const targets = active ? settings.targets.filter((id) => id !== target.id) : [...settings.targets, target.id];
       void save({ targets });
     });
-    return button;
   });
-
   const custom = settings.custom.map((domain) => {
-    const button = tile(domain, true, REMOVE_ICON);
-    button.classList.add("custom");
+    const button = option(domain, true, "remove", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
     button.title = `${s.remove} ${domain}`;
-    button.addEventListener("click", () => void save({ custom: settings.custom.filter((d) => d !== domain) }));
     return button;
   });
-
   ui.siteTiles.replaceChildren(...presets, ...custom);
 }
 
@@ -172,9 +178,17 @@ function renderSettings() {
   ui.pending.textContent = s.pending;
   ui.regionTitle.textContent = s.region;
   ui.regionHint.textContent = s.regionHint;
-  chips(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
+  ui.valRegion.textContent = s.regions[settings.region];
+  choices(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
   ui.languageTitle.textContent = s.language;
-  chips(ui.language, languages, language(), (next) => void changeLanguage(next));
+  ui.languageHint.textContent = s.languageHint;
+  ui.valLanguage.textContent = languages.find((l) => l.id === language())?.label ?? "";
+  choices(ui.language, languages, language(), (next) => void changeLanguage(next));
+  const selectedSites = [
+    ...snapshot.targets.filter((t) => settings.targets.includes(t.id)).map((t) => t.name),
+    ...settings.custom,
+  ];
+  ui.valAdvanced.textContent = selectedSites.length > 2 ? `${selectedSites.slice(0, 2).join(", ")} +${selectedSites.length - 2}` : selectedSites.join(", ");
   ui.advancedTitle.textContent = s.advanced;
   ui.selectiveLabel.textContent = s.selective;
   ui.selectiveHint.textContent = s.selectiveHint;
@@ -292,6 +306,14 @@ function bind() {
   ui.selective.addEventListener("change", () => void save({ selective: ui.selective.checked }));
 
   ui.openSettings.addEventListener("click", () => openSheet(true));
+  document.querySelectorAll<HTMLDetailsElement>("details.acc").forEach((details) =>
+    details.addEventListener("toggle", () => {
+      if (!details.open) return;
+      document.querySelectorAll<HTMLDetailsElement>("details.acc").forEach((other) => {
+        if (other !== details) other.open = false;
+      });
+    }),
+  );
   ui.back.addEventListener("click", () => openSheet(false));
   ui.hide.addEventListener("click", () => void backend.hide());
   ui.quit.addEventListener("click", () => void backend.quit());
@@ -346,6 +368,8 @@ async function boot() {
   const devParams = new URLSearchParams(location.search);
   openSheet(import.meta.env.DEV && devParams.has("settings"));
   if (import.meta.env.DEV && devParams.has("shot")) document.body.style.width = "380px";
+  const devOpen = import.meta.env.DEV ? devParams.get("open") : null;
+  if (devOpen) (document.getElementById(devOpen) as HTMLDetailsElement | null)?.setAttribute("open", "");
   render();
   document.body.classList.add("ready");
 }

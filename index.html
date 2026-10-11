@@ -36,6 +36,8 @@
       <main class="home">
         <div class="dial">
           <div class="halo"></div>
+          <span class="pulse"></span>
+          <span class="pulse late"></span>
           <svg class="ring" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="98" /></svg>
           <svg class="spinner" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 2A98 98 0 0 1 198 100" /></svg>
           <button class="power" id="btn-power" type="button">
@@ -74,36 +76,49 @@
         <div class="sheet-body">
           <p class="pending" id="lbl-pending"></p>
 
-          <section class="block">
-            <h3 id="lbl-region"></h3>
-            <div class="chips" id="region"></div>
-            <p class="hint" id="lbl-region-hint"></p>
-          </section>
+          <details class="acc" id="acc-region">
+            <summary>
+              <span id="lbl-region"></span>
+              <span class="val"><span id="val-region"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
+            </summary>
+            <div class="acc-body">
+              <p class="hint" id="lbl-region-hint"></p>
+              <div class="options" id="region"></div>
+            </div>
+          </details>
 
-          <section class="block">
-            <h3 id="lbl-language"></h3>
-            <div class="chips" id="language"></div>
-          </section>
+          <details class="acc" id="acc-language">
+            <summary>
+              <span id="lbl-language"></span>
+              <span class="val"><span id="val-language"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
+            </summary>
+            <div class="acc-body">
+              <p class="hint" id="lbl-language-hint"></p>
+              <div class="options" id="language"></div>
+            </div>
+          </details>
 
-          <details class="block advanced" id="advanced">
+          <details class="acc" id="advanced">
             <summary>
               <span id="lbl-advanced"></span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+              <span class="val"><span id="val-advanced"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
             </summary>
-            <label class="row option">
-              <span id="lbl-selective"></span>
-              <input class="switch" id="chk-selective" type="checkbox" />
-            </label>
-            <p class="hint top" id="lbl-selective-hint"></p>
-            <h3 id="lbl-sites"></h3>
-            <p class="hint top" id="lbl-sites-hint"></p>
-            <div class="tiles" id="site-tiles"></div>
-            <form class="add" id="add-form" autocomplete="off">
-              <input id="add-input" type="text" spellcheck="false" />
-              <button class="add-btn" id="btn-add" type="submit">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg>
-              </button>
-            </form>
+            <div class="acc-body">
+              <label class="toggle">
+                <span id="lbl-selective"></span>
+                <input class="switch" id="chk-selective" type="checkbox" />
+              </label>
+              <p class="hint" id="lbl-selective-hint"></p>
+              <h3 id="lbl-sites"></h3>
+              <p class="hint" id="lbl-sites-hint"></p>
+              <div class="options" id="site-tiles"></div>
+              <form class="add" id="add-form" autocomplete="off">
+                <input id="add-input" type="text" spellcheck="false" />
+                <button class="add-btn" id="btn-add" type="submit">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg>
+                </button>
+              </form>
+            </div>
           </details>
         </div>
 
