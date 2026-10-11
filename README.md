@@ -87,6 +87,8 @@ Download the latest version from [Releases](../../releases/latest).
 
 **Test sites**, under **Advanced**, are the sites FreeDPI opens to confirm that a setting works. They do not limit what gets unblocked: once connected, FreeDPI works for every site. Turn on the sites you care about most, and add a domain if a site you use is blocked but not in the list.
 
+**Only test sites**, also under **Advanced**, applies the bypass only to the test sites and their related domains. The rest of your traffic is left completely untouched. Blocked sites that are not in the list will not open while this is on. It is off by default.
+
 **Language** switches between English, Turkish and Russian.
 
 The GitHub icon at the bottom of Settings opens this repository.
@@ -179,6 +181,14 @@ src-tauri/resources/     Bundled GoodbyeDPI and WinDivert binaries for Windows
 third_party/             Licenses and checksums of bundled components
 docs/screenshots/        Images used in this README
 ```
+
+## Disclaimer
+
+FreeDPI is a general-purpose networking tool made for education, research and personal use. It changes how your own computer sends its packets. It does not host, provide or distribute any content, and it does not route your traffic through any third-party server.
+
+You are responsible for how you use FreeDPI and for following the laws and regulations that apply where you live. The authors do not encourage any use that breaks local law.
+
+FreeDPI is provided "as is", without warranty of any kind, as described in the GNU General Public License v3.0. The authors are not liable for any damage or legal consequence arising from its use.
 
 ## License
 
