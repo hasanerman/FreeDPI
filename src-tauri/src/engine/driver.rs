@@ -98,6 +98,10 @@ impl Running {
         Ok(())
     }
 
+    pub async fn refresh(&mut self) -> Result<(), EngineError> {
+        Ok(())
+    }
+
     pub async fn stop(self) {
         let mut child = self.child;
         let _ = child.kill();

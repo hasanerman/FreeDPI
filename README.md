@@ -34,7 +34,7 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 ## Features
 
 - **One button.** Finds a working setting for your network automatically.
-- **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter.
+- **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter. It also reconnects right after your computer wakes from sleep or joins another network.
 - **Runs in the background.** Closing the window keeps FreeDPI running in the system tray on Windows and in the menu bar on macOS. Connect, disconnect, open and quit from the tray menu.
 - **Start with system.** Optionally starts when you log in and connects on its own.
 - **Works for every site.** FreeDPI is not limited to a list. The test sites under Settings > Advanced are only used to check which setting works on your network, and you can add any domain as a test site.
@@ -42,6 +42,7 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 - **Automatic updates.** New versions are announced inside the app and install with one click. Every update is signed and verified before it is installed.
 - **Installer.** Start menu and desktop shortcuts on Windows, a standard app bundle on macOS, and a clean uninstaller.
 - **English, Turkish and Russian** interface, chosen automatically from your system language.
+- **Light and dark theme**, following your system setting.
 
 ## Supported
 
@@ -89,6 +90,8 @@ Download the latest version from [Releases](../../releases/latest).
 
 **Only test sites**, also under **Advanced**, applies the bypass only to the test sites and their related domains. The rest of your traffic is left completely untouched. Blocked sites that are not in the list will not open while this is on. It is off by default.
 
+**Help**, also under **Advanced**, has a button that copies diagnostics (version, settings, status and recent log lines, with no personal data) and a button that opens a new issue on GitHub.
+
 **Language** switches between English, Turkish and Russian.
 
 The GitHub icon at the bottom of Settings opens this repository.
@@ -134,6 +137,12 @@ FreeDPI is not a VPN. It does not hide your IP address or encrypt your traffic b
 
 **macOS: a site opens in the browser but not in an app.** The app was probably started before FreeDPI connected. Quit the app and open it again.
 
+**Discord voice channels.** Discord voice uses UDP. On Windows it goes through the same network driver; on macOS the system proxy only carries TCP, so voice traffic is not handled by FreeDPI there. If text chat works but voice does not, please open an issue with your provider.
+
+**Log files.** FreeDPI writes a log to `%LOCALAPPDATA%\com.freedpi.desktop\logs` on Windows and `~/Library/Logs/com.freedpi.desktop` on macOS. The Copy diagnostics button includes the most recent lines.
+
+**Removing all data.** The Windows uninstaller has a "Delete the application data" checkbox that also removes settings and logs.
+
 **Another DPI tool is running.** Close GoodbyeDPI, zapret or similar tools before connecting. FreeDPI stops an old GoodbyeDPI service automatically on Windows.
 
 ## Status and bug reports
@@ -142,9 +151,14 @@ FreeDPI is under active development. Bugs are fixed as they are reported, and fi
 
 - your operating system and FreeDPI version (shown next to the GitHub icon at the bottom of Settings),
 - your country and internet provider,
-- what you expected and what happened.
+- what you expected and what happened,
+- the output of **Settings > Advanced > Copy diagnostics**.
 
 Planned next: code signing for Windows and macOS, and an Android version.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md). The notes for each version are also shown in the app when an update is available.
 
 ## Build from source
 
@@ -171,6 +185,8 @@ src-tauri/src/
   controller.rs          Connect, disconnect and self-healing logic
   catalog.rs             Regions, setting lists and test sites
   probe.rs               Checks whether the selected sites open
+  network.rs             Sleep and network change detection
+  log.rs                 Log file and diagnostics
   tray.rs                Tray icon and menu
   autostart.rs           Start with system (Task Scheduler, LaunchAgent)
   updater.rs             Signed automatic updates

@@ -64,6 +64,19 @@ impl Running {
         Ok(())
     }
 
+    pub async fn refresh(&mut self) -> Result<(), EngineError> {
+        #[cfg(target_os = "macos")]
+        {
+            if self.active {
+                let port = self.server.port();
+                tokio::task::spawn_blocking(move || super::sysproxy::enable(port))
+                    .await
+                    .map_err(|e| EngineError::Failed(e.to_string()))??;
+            }
+        }
+        Ok(())
+    }
+
     pub async fn stop(self) {
         #[cfg(target_os = "macos")]
         {

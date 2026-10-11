@@ -56,10 +56,14 @@ jobs:
             const { version } = require('./package.json')
             const tag = `v${version}`
             const { owner, repo } = context.repo
+            const log = require('fs').readFileSync('CHANGELOG.md', 'utf8')
+            const section = log.split(/^## /m).find((part) => part.startsWith(`${version}
+`))
+            const body = section ? section.slice(version.length).trim() : `FreeDPI ${tag}`
             const releases = await github.paginate(github.rest.repos.listReleases, { owner, repo })
             const existing = releases.find((r) => r.tag_name === tag)
             if (existing) {
-              await github.rest.repos.updateRelease({ owner, repo, release_id: existing.id, draft: true })
+              await github.rest.repos.updateRelease({ owner, repo, release_id: existing.id, draft: true, body })
               return existing.id
             }
             const { data } = await github.rest.repos.createRelease({
@@ -68,7 +72,7 @@ jobs:
               tag_name: tag,
               target_commitish: context.sha,
               name: `FreeDPI ${tag}`,
-              body: `FreeDPI ${tag}`,
+              body,
               draft: true,
             })
             return data.id

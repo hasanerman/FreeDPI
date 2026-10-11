@@ -49,6 +49,11 @@ const ui = {
   update: byId("update"),
   updateText: byId("update-text"),
   updateButton: byId<HTMLButtonElement>("btn-update"),
+  updateNotes: byId("update-notes"),
+  helpTitle: byId("lbl-help"),
+  helpHint: byId("lbl-help-hint"),
+  diagnostics: byId<HTMLButtonElement>("btn-diagnostics"),
+  report: byId<HTMLButtonElement>("btn-report"),
 };
 
 let backend: Backend;
@@ -105,6 +110,7 @@ function renderStatus() {
 
   ui.discord.hidden = !(snapshot.platform === "macos" && status.phase === "on" && settings.targets.includes("discord"));
   ui.discord.textContent = s.openDiscord;
+  ui.power.setAttribute("aria-busy", String(status.phase === "connecting" || status.phase === "stopping"));
 }
 
 function option(label: string, selected: boolean, mark: "radio" | "check" | "remove", onClick: () => void): HTMLButtonElement {
@@ -202,6 +208,10 @@ function renderSettings() {
   ui.version.textContent = `FreeDPI ${snapshot.version}`;
   ui.source.title = s.source;
   ui.quit.textContent = s.quit;
+  ui.helpTitle.textContent = s.help;
+  ui.helpHint.textContent = s.helpHint;
+  if (!ui.diagnostics.classList.contains("done")) ui.diagnostics.textContent = s.copyDiagnostics;
+  ui.report.textContent = s.reportIssue;
 }
 
 function renderUpdate() {
@@ -211,6 +221,9 @@ function renderUpdate() {
   ui.updateText.textContent = updating ? s.updating : format(s.update, { version: update.version });
   ui.updateButton.textContent = s.updateAction;
   ui.updateButton.hidden = updating;
+  const notes = update.notes?.trim() ?? "";
+  ui.updateNotes.textContent = notes;
+  ui.updateNotes.hidden = notes === "" || updating;
 }
 
 function render() {
@@ -303,6 +316,21 @@ function bind() {
   });
 
   ui.source.addEventListener("click", () => void backend.openRepository());
+  ui.report.addEventListener("click", () => void backend.reportIssue());
+  ui.diagnostics.addEventListener("click", async () => {
+    const s = text();
+    try {
+      await navigator.clipboard.writeText(await backend.diagnostics());
+      ui.diagnostics.textContent = s.copied;
+      ui.diagnostics.classList.add("done");
+    } catch {
+      ui.diagnostics.textContent = s.copyFailed;
+    }
+    window.setTimeout(() => {
+      ui.diagnostics.classList.remove("done");
+      ui.diagnostics.textContent = text().copyDiagnostics;
+    }, 2500);
+  });
   ui.selective.addEventListener("change", () => void save({ selective: ui.selective.checked }));
 
   ui.openSettings.addEventListener("click", () => openSheet(true));

@@ -34,6 +34,16 @@ pub fn open_repository() -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn report_issue() -> Result<(), String> {
+    crate::apps::open_url(&format!("{}/issues/new", crate::apps::REPOSITORY))
+}
+
+#[tauri::command]
+pub fn diagnostics(controller: Ctl<'_>) -> String {
+    controller.diagnostics()
+}
+
+#[tauri::command]
 pub async fn open_discord(controller: Ctl<'_>) -> Result<(), String> {
     let port = controller.proxy_port().await.ok_or("not_connected")?;
     tokio::task::spawn_blocking(move || crate::apps::relaunch_discord(port))

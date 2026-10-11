@@ -60,7 +60,7 @@ export function mockBackend(): Backend {
         ],
         platform: params.get("platform") ?? "windows",
         version: pkg.version,
-        update: params.get("update") !== null ? { version: "0.2.0" } : null,
+        update: params.get("update") !== null ? { version: "0.2.0", notes: "- Faster connection after sleep\n- Diagnostics button" } : null,
       };
     },
     async connect() {
@@ -108,6 +108,12 @@ export function mockBackend(): Backend {
     },
     onUpdate() {},
     async openDiscord() {},
+    async reportIssue() {
+      window.open("https://github.com/hasanerman/FreeDPI/issues/new", "_blank");
+    },
+    async diagnostics() {
+      return `FreeDPI ${pkg.version}\nstatus: ${status.phase}`;
+    },
     async openRepository() {
       window.open("https://github.com/hasanerman/FreeDPI", "_blank");
     },

@@ -63,6 +63,12 @@ const en = {
   updateError: "Update failed. Try again later.",
   openDiscord: "Open Discord with FreeDPI",
   discordError: "Discord could not be opened.",
+  help: "Help",
+  helpHint: "If something does not work, copy the diagnostics and paste them into a new issue. They contain no personal data.",
+  copyDiagnostics: "Copy diagnostics",
+  copied: "Copied",
+  copyFailed: "Could not copy",
+  reportIssue: "Report a problem",
 };
 
 type Strings = typeof en;
@@ -130,6 +136,12 @@ const tr: Strings = {
   updateError: "Güncelleme başarısız. Sonra tekrar dene.",
   openDiscord: "Discord'u FreeDPI ile aç",
   discordError: "Discord açılamadı.",
+  help: "Yardım",
+  helpHint: "Bir şey çalışmazsa tanılama bilgisini kopyalayıp yeni bir sorun kaydına yapıştır. Kişisel veri içermez.",
+  copyDiagnostics: "Tanılamayı kopyala",
+  copied: "Kopyalandı",
+  copyFailed: "Kopyalanamadı",
+  reportIssue: "Sorun bildir",
 };
 
 const ru: Strings = {
@@ -195,6 +207,12 @@ const ru: Strings = {
   updateError: "Не удалось обновить. Попробуйте позже.",
   openDiscord: "Открыть Discord через FreeDPI",
   discordError: "Не удалось открыть Discord.",
+  help: "Помощь",
+  helpHint: "Если что-то не работает, скопируйте диагностику и вставьте её в новый отчёт. Личных данных там нет.",
+  copyDiagnostics: "Копировать диагностику",
+  copied: "Скопировано",
+  copyFailed: "Не удалось скопировать",
+  reportIssue: "Сообщить о проблеме",
 };
 
 const dictionaries: Record<Language, Strings> = { en, tr, ru };

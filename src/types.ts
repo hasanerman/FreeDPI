@@ -46,6 +46,7 @@ export interface Snapshot {
 
 export interface UpdateInfo {
   version: string;
+  notes?: string | null;
 }
 
 export interface Backend {
@@ -62,5 +63,7 @@ export interface Backend {
   installUpdate(): Promise<void>;
   openDiscord(): Promise<void>;
   openRepository(): Promise<void>;
+  reportIssue(): Promise<void>;
+  diagnostics(): Promise<string>;
   onUpdate(handler: (update: UpdateInfo) => void): void;
 }

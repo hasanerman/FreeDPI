@@ -47,8 +47,8 @@
             </svg>
           </button>
         </div>
-        <h1 class="status" id="status-title"></h1>
-        <p class="detail" id="status-detail"></p>
+        <h1 class="status" id="status-title" aria-live="polite"></h1>
+        <p class="detail" id="status-detail" aria-live="polite"></p>
         <p class="profile" id="status-profile"></p>
         <button class="pill" id="btn-discord" type="button" hidden></button>
       </main>
@@ -56,6 +56,7 @@
       <div class="update" id="update" hidden>
         <span id="update-text"></span>
         <button class="update-btn" id="btn-update" type="button"></button>
+        <p class="notes" id="update-notes" hidden></p>
       </div>
 
       <footer class="footer">
@@ -118,6 +119,12 @@
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg>
                 </button>
               </form>
+              <h3 id="lbl-help"></h3>
+              <p class="hint" id="lbl-help-hint"></p>
+              <div class="tools">
+                <button class="tool" id="btn-diagnostics" type="button"></button>
+                <button class="tool" id="btn-report" type="button"></button>
+              </div>
             </div>
           </details>
         </div>

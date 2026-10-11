@@ -9,6 +9,8 @@ use tokio::sync::{watch, Mutex as AsyncMutex};
 use crate::autostart;
 use crate::catalog;
 use crate::engine::{Engine, EngineError, Running};
+use crate::log;
+use crate::network;
 use crate::probe;
 use crate::settings::{Preferences, Settings};
 use crate::tray;
@@ -129,6 +131,14 @@ impl Controller {
     }
 
     fn set_status(&self, status: Status) {
+        if status.phase != Phase::Connecting {
+            log::write(format!(
+                "status {:?}{}{}",
+                status.phase,
+                status.profile.as_deref().map(|p| format!(" profile={p}")).unwrap_or_default(),
+                status.error.as_deref().map(|e| format!(" error={e}")).unwrap_or_default()
+            ));
+        }
         *lock(&self.status) = status;
         self.publish();
     }
@@ -211,8 +221,46 @@ impl Controller {
     }
 
     pub async fn health_check(&self) {
+        self.check(MAX_FAILURES).await;
+    }
+
+    pub async fn network_changed(&self) {
+        if self.status().phase != Phase::On {
+            return;
+        }
+        if let Some(running) = self.session.lock().await.as_mut() {
+            if let Err(error) = running.refresh().await {
+                log::write(format!("refresh failed: {}", error.code()));
+            }
+        }
+        self.check(1).await;
+    }
+
+    pub fn diagnostics(&self) -> String {
+        let settings = self.settings();
+        let status = self.status();
+        let mut out = vec![
+            format!("FreeDPI {}", env!("CARGO_PKG_VERSION")),
+            format!("os: {} {}", std::env::consts::OS, std::env::consts::ARCH),
+            format!("region: {:?}", settings.region),
+            format!("targets: {}", settings.targets.join(", ")),
+            format!("custom sites: {}", settings.custom.len()),
+            format!("only test sites: {}", settings.selective),
+            format!("autostart: {}", settings.autostart),
+            format!("status: {:?} profile={:?} error={:?}", status.phase, status.profile, status.error),
+            format!("online: {}", network::online()),
+            String::new(),
+        ];
+        out.extend(log::recent());
+        out.join("\n")
+    }
+
+    async fn check(&self, limit: u32) {
         if self.status().phase != Phase::On {
             *lock(&self.failures) = 0;
+            return;
+        }
+        if !network::online() {
             return;
         }
         let settings = self.settings();
@@ -228,13 +276,20 @@ impl Controller {
                 return;
             }
             *failures += 1;
-            if *failures < MAX_FAILURES {
+            log::write(format!("health check failed ({}/{limit})", *failures));
+            if *failures < limit {
                 return;
             }
             *failures = 0;
         }
-        *lock(&self.demoted) = self.status().profile;
-        self.update(|s| s.profile = None);
+        if !network::online() {
+            return;
+        }
+        log::write("searching for a new setting");
+        if limit > 1 {
+            *lock(&self.demoted) = self.status().profile;
+            self.update(|s| s.profile = None);
+        }
         self.disconnect().await;
         self.connect().await;
     }
@@ -262,6 +317,12 @@ impl Controller {
                 profiles.push(item);
             }
         }
+        log::write(format!(
+            "search region={:?} targets={} selective={}",
+            settings.region,
+            settings.targets.join(","),
+            settings.selective
+        ));
         self.engine.prepare().await.map_err(Stop::Failed)?;
 
         let total = profiles.len();
@@ -274,7 +335,10 @@ impl Controller {
             let mut running = match self.engine.start(&profile, only.as_deref()).await {
                 Ok(running) => running,
                 Err(error) if error.fatal() => return Err(Stop::Failed(error)),
-                Err(_) => continue,
+                Err(error) => {
+                    log::write(format!("setting {} failed to start: {error:?}", index + 1));
+                    continue;
+                }
             };
 
             let reachable = if running.alive() {
@@ -290,6 +354,9 @@ impl Controller {
             };
 
             if !reachable || *cancel.borrow() {
+                if !reachable {
+                    log::write(format!("setting {} did not work", index + 1));
+                }
                 running.stop().await;
                 if *cancel.borrow() {
                     return Err(Stop::Cancelled);

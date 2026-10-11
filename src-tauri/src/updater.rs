@@ -15,6 +15,14 @@ pub struct Pending(Mutex<Option<Update>>);
 #[derive(Clone, Serialize)]
 pub struct Available {
     pub version: String,
+    pub notes: Option<String>,
+}
+
+fn info(update: &Update) -> Available {
+    Available {
+        version: update.version.clone(),
+        notes: update.body.clone().filter(|b| !b.trim().is_empty()),
+    }
 }
 
 pub fn watch(app: AppHandle) {
@@ -33,7 +41,8 @@ async fn check(app: &AppHandle) {
     let Ok(Some(update)) = updater.check().await else {
         return;
     };
-    let info = Available { version: update.version.clone() };
+    let info = info(&update);
+    crate::log::write(format!("update {} available", info.version));
     if let Some(pending) = app.try_state::<Pending>() {
         *pending.0.lock().unwrap_or_else(|e| e.into_inner()) = Some(update);
     }
@@ -43,7 +52,7 @@ async fn check(app: &AppHandle) {
 pub fn available(app: &AppHandle) -> Option<Available> {
     let pending = app.try_state::<Pending>()?;
     let guard = pending.0.lock().unwrap_or_else(|e| e.into_inner());
-    guard.as_ref().map(|u| Available { version: u.version.clone() })
+    guard.as_ref().map(info)
 }
 
 pub async fn install(app: AppHandle) -> Result<(), String> {

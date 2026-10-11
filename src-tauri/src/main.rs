@@ -7,6 +7,8 @@ mod commands;
 mod controller;
 mod engine;
 mod i18n;
+mod log;
+mod network;
 mod probe;
 mod settings;
 mod system;
@@ -27,17 +29,15 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(updater::Pending::default())
         .setup(move |app| {
+            if let Ok(dir) = app.path().app_log_dir() {
+                log::init(dir);
+            }
+            log::write(format!("FreeDPI {} started on {}", env!("CARGO_PKG_VERSION"), std::env::consts::OS));
             updater::watch(app.handle().clone());
             let controller = Arc::new(Controller::new(app.handle())?);
             tray::create(app.handle(), &controller.settings())?;
             app.manage(controller.clone());
-            let watcher = controller.clone();
-            tauri::async_runtime::spawn(async move {
-                loop {
-                    tokio::time::sleep(std::time::Duration::from_secs(45)).await;
-                    watcher.health_check().await;
-                }
-            });
+            network::watch(controller.clone());
             if start_in_tray {
                 tauri::async_runtime::spawn(async move { controller.connect().await });
             } else {
@@ -62,6 +62,8 @@ fn main() {
             commands::install_update,
             commands::open_discord,
             commands::open_repository,
+            commands::report_issue,
+            commands::diagnostics,
         ])
         .build(tauri::generate_context!())
         .expect("failed to start FreeDPI");

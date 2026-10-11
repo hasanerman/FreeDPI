@@ -35,6 +35,10 @@ pub fn relaunch_discord(port: u16) -> Result<(), String> {
 pub const REPOSITORY: &str = "https://github.com/hasanerman/FreeDPI";
 
 pub fn open_repository() -> Result<(), String> {
+    open_url(REPOSITORY)
+}
+
+pub fn open_url(url: &str) -> Result<(), String> {
     #[cfg(windows)]
     let program = "explorer.exe";
     #[cfg(target_os = "macos")]
@@ -42,7 +46,7 @@ pub fn open_repository() -> Result<(), String> {
     #[cfg(not(any(windows, target_os = "macos")))]
     let program = "xdg-open";
     std::process::Command::new(program)
-        .arg(REPOSITORY)
+        .arg(url)
         .spawn()
         .map(|_| ())
         .map_err(|e| e.to_string())
