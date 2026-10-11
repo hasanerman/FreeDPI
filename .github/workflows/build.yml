@@ -57,9 +57,8 @@ jobs:
             const tag = `v${version}`
             const { owner, repo } = context.repo
             const log = require('fs').readFileSync('CHANGELOG.md', 'utf8')
-            const section = log.split(/^## /m).find((part) => part.startsWith(`${version}
-`))
-            const body = section ? section.slice(version.length).trim() : `FreeDPI ${tag}`
+            const section = log.split(/^## /m).find((part) => part.split(String.fromCharCode(10))[0].trim() === version)
+            const body = section ? section.slice(section.indexOf(version) + version.length).trim() : `FreeDPI ${tag}`
             const releases = await github.paginate(github.rest.repos.listReleases, { owner, repo })
             const existing = releases.find((r) => r.tag_name === tag)
             if (existing) {
