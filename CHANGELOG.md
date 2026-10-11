@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.15
+
+- Release notes now appear in the update banner.
+
 ## 0.1.14
 
 - Choose between system, light and dark theme in Settings.

@@ -46,6 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       id: ${{ steps.create.outputs.result }}
+      notes: ${{ steps.create.outputs.notes }}
     steps:
       - uses: actions/checkout@v5
 
@@ -59,6 +60,7 @@ jobs:
             const log = require('fs').readFileSync('CHANGELOG.md', 'utf8')
             const section = log.split(/^## /m).find((part) => part.split(String.fromCharCode(10))[0].trim() === version)
             const body = section ? section.slice(section.indexOf(version) + version.length).trim() : `FreeDPI ${tag}`
+            core.setOutput('notes', body)
             const releases = await github.paginate(github.rest.repos.listReleases, { owner, repo })
             const existing = releases.find((r) => r.tag_name === tag)
             if (existing) {
@@ -117,6 +119,7 @@ jobs:
         with:
           args: ${{ matrix.args }}
           releaseId: ${{ needs.release.outputs.id }}
+          releaseBody: ${{ needs.release.outputs.notes }}
 
       - uses: actions/upload-artifact@v5
         with:
