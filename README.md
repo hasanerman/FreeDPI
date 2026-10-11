@@ -42,7 +42,7 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 - **Automatic updates.** New versions are announced inside the app and install with one click. Every update is signed and verified before it is installed.
 - **Installer.** Start menu and desktop shortcuts on Windows, a standard app bundle on macOS, and a clean uninstaller.
 - **English, Turkish and Russian** interface, chosen automatically from your system language.
-- **Light and dark theme**, following your system setting.
+- **Light and dark theme.** Follows your system setting by default, or pick one under Settings > Theme.
 
 ## Supported
 

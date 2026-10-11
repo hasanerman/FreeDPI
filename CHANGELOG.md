@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.14
+
+- Choose between system, light and dark theme in Settings.
+
 ## 0.1.13
 
 - Reconnects right after the computer wakes from sleep or the network changes.

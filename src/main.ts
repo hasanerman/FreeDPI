@@ -3,6 +3,9 @@ import { format, languages, resolveLanguage, strings } from "./i18n";
 import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status, UpdateInfo } from "./types";
 
 const REGIONS: Region[] = ["auto", "turkey", "russia", "other"];
+const THEMES = ["system", "light", "dark"] as const;
+type Theme = (typeof THEMES)[number];
+const THEME_KEY = "freedpi-theme";
 const CHECK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>';
 const REMOVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" /></svg>';
 const DOMAIN = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/;
@@ -54,7 +57,28 @@ const ui = {
   helpHint: byId("lbl-help-hint"),
   diagnostics: byId<HTMLButtonElement>("btn-diagnostics"),
   report: byId<HTMLButtonElement>("btn-report"),
+  themeTitle: byId("lbl-theme"),
+  themeHint: byId("lbl-theme-hint"),
+  theme: byId("theme"),
+  valTheme: byId("val-theme"),
 };
+
+function storedTheme(): Theme {
+  try {
+    const value = localStorage.getItem(THEME_KEY);
+    return THEMES.includes(value as Theme) ? (value as Theme) : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function applyTheme(theme: Theme) {
+  if (theme === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+}
+
+let theme: Theme = storedTheme();
+applyTheme(theme);
 
 let backend: Backend;
 let snapshot: Snapshot;
@@ -186,6 +210,17 @@ function renderSettings() {
   ui.regionHint.textContent = s.regionHint;
   ui.valRegion.textContent = s.regions[settings.region];
   choices(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
+  ui.themeTitle.textContent = s.theme;
+  ui.themeHint.textContent = s.themeHint;
+  ui.valTheme.textContent = s.themes[theme];
+  choices(ui.theme, THEMES.map((id) => ({ id, label: s.themes[id] })), theme, (next) => {
+    theme = next;
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch {}
+    applyTheme(next);
+    renderSettings();
+  });
   ui.languageTitle.textContent = s.language;
   ui.languageHint.textContent = s.languageHint;
   ui.valLanguage.textContent = languages.find((l) => l.id === language())?.label ?? "";
