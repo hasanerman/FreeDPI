@@ -27,7 +27,7 @@ pub struct Server {
 }
 
 impl Server {
-    pub async fn start(method: Method, resolver: Arc<Resolver>) -> io::Result<Self> {
+    pub async fn start(method: Method, resolver: Arc<Resolver>, only: Option<Arc<Vec<String>>>) -> io::Result<Self> {
         let listener = match TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], PREFERRED_PORT))).await {
             Ok(listener) => listener,
             Err(_) => TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))).await?,
@@ -40,8 +40,9 @@ impl Server {
                     Ok((client, _)) => {
                         let method = method.clone();
                         let resolver = resolver.clone();
+                        let only = only.clone();
                         tokio::spawn(async move {
-                            let _ = serve(client, &method, &resolver).await;
+                            let _ = serve(client, &method, &resolver, only.as_deref().map(Vec::as_slice)).await;
                         });
                     }
                     Err(_) => tokio::time::sleep(Duration::from_millis(50)).await,
@@ -67,7 +68,7 @@ enum Request {
     Forward { host: String, port: u16, head: Vec<u8> },
 }
 
-async fn serve(mut client: TcpStream, method: &Method, resolver: &Resolver) -> io::Result<()> {
+async fn serve(mut client: TcpStream, method: &Method, resolver: &Resolver, only: Option<&[String]>) -> io::Result<()> {
     client.set_nodelay(true)?;
     let (head, body) = timeout(IO_TIMEOUT, read_head(&mut client))
         .await
@@ -85,8 +86,11 @@ async fn serve(mut client: TcpStream, method: &Method, resolver: &Resolver) -> i
             };
             client.write_all(b"HTTP/1.1 200 Connection Established\r\n\r\n").await?;
             let hello = read_client_hello(&mut client, body).await?;
-            if !hello.is_empty() {
+            let bypass = only.is_none_or(|domains| crate::catalog::covers(domains, &host));
+            if bypass && !hello.is_empty() {
                 method.send(&mut upstream, &hello).await?;
+            } else {
+                upstream.write_all(&hello).await?;
             }
             tokio::io::copy_bidirectional(&mut client, &mut upstream).await?;
         }
@@ -264,7 +268,7 @@ mod tests {
         });
 
         let method = Method::parse("tlsrec=sni+1 split=sni+3").unwrap();
-        let server = Server::start(method, Arc::new(Resolver::new())).await.unwrap();
+        let server = Server::start(method, Arc::new(Resolver::new()), None).await.unwrap();
         let mut client = TcpStream::connect(("127.0.0.1", server.port())).await.unwrap();
         client
             .write_all(format!("CONNECT 127.0.0.1:{upstream_port} HTTP/1.1\r\n\r\n").as_bytes())
@@ -288,7 +292,7 @@ mod tests {
     #[ignore]
     async fn serve_for_manual_testing() {
         let spec = std::env::var("FREEDPI_METHOD").unwrap_or_else(|_| "split=1".into());
-        let server = Server::start(Method::parse(&spec).unwrap(), Arc::new(Resolver::new())).await.unwrap();
+        let server = Server::start(Method::parse(&spec).unwrap(), Arc::new(Resolver::new()), None).await.unwrap();
         eprintln!("listening on {} with {spec}", server.port());
         tokio::time::sleep(Duration::from_secs(90)).await;
     }
@@ -300,7 +304,7 @@ mod tests {
         let urls = vec!["https://discord.com/api/v9/gateway".to_string()];
         let mut working = Vec::new();
         for profile in crate::catalog::proxy_profiles(crate::catalog::Region::Auto) {
-            let server = Server::start(Method::parse(profile).unwrap(), resolver.clone()).await.unwrap();
+            let server = Server::start(Method::parse(profile).unwrap(), resolver.clone(), None).await.unwrap();
             let ok = crate::probe::reachable(&urls, Some(server.port())).await;
             eprintln!("{profile:<28} {}", if ok { "ok" } else { "blocked" });
             if ok {

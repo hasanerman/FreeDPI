@@ -24,6 +24,7 @@ export function mockBackend(): Backend {
     region: "auto",
     targets: ["discord"],
     custom: [],
+    selective: false,
     autostart: false,
     language: params.get("lang") ?? "",
     profile: null,

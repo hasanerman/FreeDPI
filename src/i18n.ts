@@ -44,6 +44,8 @@ const en = {
     other: "Other",
   } satisfies Record<Region, string>,
   advanced: "Advanced",
+  selective: "Only test sites",
+  selectiveHint: "Apply the bypass only to the sites below. Everything else stays untouched. Blocked sites that are not in the list will not open.",
   sites: "Test sites",
   sitesHint:
     "FreeDPI works for every site. These are only used to check which setting works on your network.",
@@ -108,6 +110,8 @@ const tr: Strings = {
     other: "Diğer",
   },
   advanced: "Gelişmiş",
+  selective: "Sadece test sitelerinde çalış",
+  selectiveHint: "Engel aşma sadece aşağıdaki sitelere uygulanır, geri kalan internete hiç dokunulmaz. Listede olmayan engelli siteler açılmaz.",
   sites: "Test siteleri",
   sitesHint:
     "FreeDPI bütün sitelerde çalışır. Bunlar sadece ağında hangi ayarın çalıştığını denemek için kullanılır.",
@@ -170,6 +174,8 @@ const ru: Strings = {
     other: "Другой",
   },
   advanced: "Дополнительно",
+  selective: "Только тестовые сайты",
+  selectiveHint: "Обход применяется только к сайтам ниже, остальной трафик не затрагивается. Заблокированные сайты не из списка не откроются.",
   sites: "Тестовые сайты",
   sitesHint:
     "FreeDPI работает для всех сайтов. Эти сайты нужны только для проверки, какая настройка работает в вашей сети.",

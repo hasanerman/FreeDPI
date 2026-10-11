@@ -14,6 +14,7 @@ pub struct Target {
     pub id: &'static str,
     pub name: &'static str,
     pub urls: &'static [&'static str],
+    pub domains: &'static [&'static str],
 }
 
 pub const TARGETS: &[Target] = &[
@@ -21,11 +22,59 @@ pub const TARGETS: &[Target] = &[
         id: "discord",
         name: "Discord",
         urls: &["https://discord.com/api/v9/gateway", "https://gateway.discord.gg/", "https://cdn.discordapp.com/"],
+        domains: &[
+            "discord.com",
+            "discord.gg",
+            "discord.media",
+            "discord.dev",
+            "discord.new",
+            "discord.co",
+            "discordapp.com",
+            "discordapp.net",
+            "discordcdn.com",
+            "discordstatus.com",
+            "dis.gd",
+        ],
     },
-    Target { id: "youtube", name: "YouTube", urls: &["https://www.youtube.com/generate_204"] },
-    Target { id: "roblox", name: "Roblox", urls: &["https://www.roblox.com/"] },
-    Target { id: "wattpad", name: "Wattpad", urls: &["https://www.wattpad.com/"] },
+    Target {
+        id: "youtube",
+        name: "YouTube",
+        urls: &["https://www.youtube.com/generate_204"],
+        domains: &["youtube.com", "youtu.be", "googlevideo.com", "ytimg.com", "ggpht.com", "youtube-nocookie.com", "youtubei.googleapis.com"],
+    },
+    Target {
+        id: "roblox",
+        name: "Roblox",
+        urls: &["https://www.roblox.com/"],
+        domains: &["roblox.com", "rbxcdn.com", "rbx.com", "robloxlabs.com"],
+    },
+    Target {
+        id: "wattpad",
+        name: "Wattpad",
+        urls: &["https://www.wattpad.com/"],
+        domains: &["wattpad.com", "wattpad.net"],
+    },
 ];
+
+pub fn target_domains(ids: &[String], custom: &[String]) -> Vec<String> {
+    let mut domains: Vec<String> = TARGETS
+        .iter()
+        .filter(|t| ids.iter().any(|id| id == t.id))
+        .flat_map(|t| t.domains.iter().map(|d| d.to_string()))
+        .collect();
+    domains.extend(custom.iter().filter_map(|d| normalize_domain(d)));
+    if domains.is_empty() {
+        domains.extend(TARGETS[0].domains.iter().map(|d| d.to_string()));
+    }
+    domains
+}
+
+pub fn covers(domains: &[String], host: &str) -> bool {
+    let host = host.trim_end_matches('.').to_ascii_lowercase();
+    domains
+        .iter()
+        .any(|d| host == *d || host.strip_suffix(d.as_str()).is_some_and(|rest| rest.ends_with('.')))
+}
 
 #[cfg_attr(not(windows), allow(dead_code))]
 pub fn goodbyedpi_profiles(region: Region) -> Vec<&'static str> {
@@ -131,6 +180,17 @@ mod tests {
         unique.dedup();
         assert_eq!(profiles.len(), unique.len());
         assert_eq!(profiles[0], "-5 --wrong-seq --reverse-frag");
+    }
+
+    #[test]
+    fn covers_domains_and_subdomains() {
+        let domains = target_domains(&["discord".into()], &["example.com".into()]);
+        assert!(covers(&domains, "discord.com"));
+        assert!(covers(&domains, "gateway.discord.gg"));
+        assert!(covers(&domains, "CDN.discordapp.com."));
+        assert!(covers(&domains, "a.example.com"));
+        assert!(!covers(&domains, "notdiscord.com"));
+        assert!(!covers(&domains, "google.com"));
     }
 
     #[test]

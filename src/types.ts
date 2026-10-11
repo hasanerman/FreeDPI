@@ -16,6 +16,7 @@ export interface Settings {
   region: Region;
   targets: string[];
   custom: string[];
+  selective: boolean;
   autostart: boolean;
   language: string;
   profile: string | null;
@@ -26,6 +27,7 @@ export interface Preferences {
   region: Region;
   targets: string[];
   custom: string[];
+  selective: boolean;
 }
 
 export interface TargetInfo {

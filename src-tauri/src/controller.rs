@@ -252,6 +252,9 @@ impl Controller {
     async fn search(&self, cancel: &mut watch::Receiver<bool>) -> Result<(Running, String), Stop> {
         let settings = self.settings();
         let urls = catalog::target_urls(&settings.targets, &settings.custom);
+        let only = settings
+            .selective
+            .then(|| catalog::target_domains(&settings.targets, &settings.custom));
         let mut profiles = catalog::ordered(Engine::profiles(settings.region), settings.profile.as_deref());
         if let Some(demoted) = lock(&self.demoted).take() {
             if let Some(index) = profiles.iter().position(|p| *p == demoted) {
@@ -268,7 +271,7 @@ impl Controller {
             }
             self.set_status(Status::connecting(index + 1, total));
 
-            let mut running = match self.engine.start(&profile).await {
+            let mut running = match self.engine.start(&profile, only.as_deref()).await {
                 Ok(running) => running,
                 Err(error) if error.fatal() => return Err(Stop::Failed(error)),
                 Err(_) => continue,

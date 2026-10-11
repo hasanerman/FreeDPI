@@ -34,6 +34,9 @@ const ui = {
   sitesHint: byId("lbl-sites-hint"),
   siteTiles: byId("site-tiles"),
   advancedTitle: byId("lbl-advanced"),
+  selective: byId<HTMLInputElement>("chk-selective"),
+  selectiveLabel: byId("lbl-selective"),
+  selectiveHint: byId("lbl-selective-hint"),
   addForm: byId<HTMLFormElement>("add-form"),
   addInput: byId<HTMLInputElement>("add-input"),
   addButton: byId<HTMLButtonElement>("btn-add"),
@@ -173,6 +176,9 @@ function renderSettings() {
   ui.languageTitle.textContent = s.language;
   chips(ui.language, languages, language(), (next) => void changeLanguage(next));
   ui.advancedTitle.textContent = s.advanced;
+  ui.selectiveLabel.textContent = s.selective;
+  ui.selectiveHint.textContent = s.selectiveHint;
+  ui.selective.checked = settings.selective;
   ui.sitesTitle.textContent = s.sites;
   ui.sitesHint.textContent = s.sitesHint;
   renderSites();
@@ -214,6 +220,7 @@ async function save(change: Partial<Preferences>) {
     region: settings.region,
     targets: settings.targets,
     custom: settings.custom,
+    selective: settings.selective,
     ...change,
   };
   settings = await backend.savePreferences(preferences);
@@ -282,6 +289,7 @@ function bind() {
   });
 
   ui.source.addEventListener("click", () => void backend.openRepository());
+  ui.selective.addEventListener("change", () => void save({ selective: ui.selective.checked }));
 
   ui.openSettings.addEventListener("click", () => openSheet(true));
   ui.back.addEventListener("click", () => openSheet(false));

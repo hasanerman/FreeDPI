@@ -12,6 +12,7 @@ pub struct Settings {
     pub region: Region,
     pub targets: Vec<String>,
     pub custom: Vec<String>,
+    pub selective: bool,
     pub autostart: bool,
     pub language: String,
     pub profile: Option<String>,
@@ -24,6 +25,8 @@ pub struct Preferences {
     pub region: Region,
     pub targets: Vec<String>,
     pub custom: Vec<String>,
+    #[serde(default)]
+    pub selective: bool,
 }
 
 impl Default for Settings {
@@ -32,6 +35,7 @@ impl Default for Settings {
             region: Region::Auto,
             targets: vec!["discord".into()],
             custom: Vec::new(),
+            selective: false,
             autostart: false,
             language: String::new(),
             profile: None,
@@ -62,6 +66,7 @@ impl Settings {
             self.profile = None;
         }
         self.region = prefs.region;
+        self.selective = prefs.selective;
         self.targets = prefs
             .targets
             .into_iter()
@@ -101,7 +106,9 @@ mod tests {
             region: Region::Turkey,
             targets: vec!["discord".into(), "unknown".into()],
             custom: vec!["Example.com".into(), "example.com/path".into(), "not a domain".into()],
+            selective: true,
         });
+        assert!(settings.selective);
         assert_eq!(settings.targets, vec!["discord"]);
         assert_eq!(settings.custom, vec!["example.com"]);
         assert_eq!(settings.profile, None);

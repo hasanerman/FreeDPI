@@ -34,9 +34,9 @@ impl Engine {
         Ok(())
     }
 
-    pub async fn start(&self, profile: &str) -> Result<Running, EngineError> {
+    pub async fn start(&self, profile: &str, only: Option<&[String]>) -> Result<Running, EngineError> {
         let method = Method::parse(profile).ok_or_else(|| EngineError::Failed(format!("invalid profile: {profile}")))?;
-        let server = Server::start(method, self.resolver.clone())
+        let server = Server::start(method, self.resolver.clone(), only.map(|d| Arc::new(d.to_vec())))
             .await
             .map_err(|e| EngineError::Failed(e.to_string()))?;
         Ok(Running { server, active: false })

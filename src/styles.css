@@ -488,6 +488,11 @@ body.ready .app {
   transform: rotate(90deg);
 }
 
+.option {
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
