@@ -12,6 +12,9 @@ pub struct Labels {
     pub open: &'static str,
     pub autostart: &'static str,
     pub quit: &'static str,
+    pub lost: &'static str,
+    pub restored: &'static str,
+    pub failed: &'static str,
 }
 
 const EN: Labels = Labels {
@@ -26,6 +29,9 @@ const EN: Labels = Labels {
     open: "Open FreeDPI",
     autostart: "Start with system",
     quit: "Quit",
+    lost: "The connection stopped working. Looking for another setting…",
+    restored: "Connected again.",
+    failed: "Could not reconnect. Open FreeDPI to try again.",
 };
 
 const TR: Labels = Labels {
@@ -40,6 +46,9 @@ const TR: Labels = Labels {
     open: "FreeDPI'ı aç",
     autostart: "Sistemle birlikte başlat",
     quit: "Çıkış",
+    lost: "Bağlantı çalışmayı bıraktı. Başka bir ayar aranıyor…",
+    restored: "Yeniden bağlandı.",
+    failed: "Yeniden bağlanılamadı. Tekrar denemek için FreeDPI'ı aç.",
 };
 
 const RU: Labels = Labels {
@@ -54,6 +63,9 @@ const RU: Labels = Labels {
     open: "Открыть FreeDPI",
     autostart: "Запускать вместе с системой",
     quit: "Выход",
+    lost: "Соединение перестало работать. Ищем другую настройку…",
+    restored: "Снова подключено.",
+    failed: "Не удалось переподключиться. Откройте FreeDPI, чтобы попробовать снова.",
 };
 
 pub fn labels(language: &str) -> &'static Labels {

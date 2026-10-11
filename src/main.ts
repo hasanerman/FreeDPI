@@ -111,6 +111,27 @@ function detailText(): string {
   }
 }
 
+function elapsed(since: number): string {
+  const total = Math.max(0, Math.floor((Date.now() - since) / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = total % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+}
+
+function renderProfile() {
+  const s = text();
+  if (status.phase !== "on") {
+    ui.profile.textContent = "";
+    return;
+  }
+  const parts: string[] = [];
+  if (status.since) parts.push(format(s.connectedFor, { time: elapsed(status.since) }));
+  if (status.step > 0) parts.push(format(s.profile, { step: status.step }));
+  ui.profile.textContent = parts.join(" · ");
+}
+
 function renderStatus() {
   const s = text();
   if (ui.app.dataset.phase !== status.phase) {
@@ -123,7 +144,7 @@ function renderStatus() {
   ui.app.dataset.phase = status.phase;
   ui.title.textContent = s.phase[status.phase];
   ui.detail.textContent = detailText();
-  ui.profile.textContent = status.phase === "on" && status.step > 0 ? format(s.profile, { step: status.step }) : "";
+  renderProfile();
 
   const action =
     status.phase === "on" ? s.action.disconnect : status.phase === "connecting" ? s.action.cancel : s.action.connect;
@@ -428,6 +449,9 @@ async function boot() {
   });
 
   bind();
+  window.setInterval(() => {
+    if (status.phase === "on") renderProfile();
+  }, 1000);
   const devParams = new URLSearchParams(location.search);
   openSheet(import.meta.env.DEV && devParams.has("settings"));
   if (import.meta.env.DEV && devParams.has("shot")) document.body.style.width = "380px";

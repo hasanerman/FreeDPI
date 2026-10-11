@@ -10,6 +10,7 @@ export interface Status {
   total: number;
   profile: string | null;
   error: string | null;
+  since?: number | null;
 }
 
 export interface Settings {

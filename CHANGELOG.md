@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.16
+
+- Shows how long you have been connected.
+- Notifies you when the connection stops working and when FreeDPI reconnects.
+
 ## 0.1.15
 
 - Release notes now appear in the update banner.

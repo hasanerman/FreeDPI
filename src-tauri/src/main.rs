@@ -9,6 +9,7 @@ mod engine;
 mod i18n;
 mod log;
 mod network;
+mod notify;
 mod probe;
 mod settings;
 mod system;
@@ -27,6 +28,7 @@ fn main() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_window(app)))
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_notification::init())
         .manage(updater::Pending::default())
         .setup(move |app| {
             if let Ok(dir) = app.path().app_log_dir() {

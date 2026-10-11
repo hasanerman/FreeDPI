@@ -34,7 +34,7 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 ## Features
 
 - **One button.** Finds a working setting for your network automatically.
-- **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter. It also reconnects right after your computer wakes from sleep or joins another network.
+- **Self-healing.** While connected, FreeDPI checks the connection every 45 seconds and switches to another setting if your provider changes its filter. It also reconnects right after your computer wakes from sleep or joins another network, and shows a notification when the connection drops and when it is back.
 - **Runs in the background.** Closing the window keeps FreeDPI running in the system tray on Windows and in the menu bar on macOS. Connect, disconnect, open and quit from the tray menu.
 - **Start with system.** Optionally starts when you log in and connects on its own.
 - **Works for every site.** FreeDPI is not limited to a list. The test sites under Settings > Advanced are only used to check which setting works on your network, and you can add any domain as a test site.

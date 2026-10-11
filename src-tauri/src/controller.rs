@@ -1,6 +1,7 @@
 use std::future::Future;
 use std::path::PathBuf;
 use std::sync::{Mutex, MutexGuard};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
@@ -11,6 +12,8 @@ use crate::catalog;
 use crate::engine::{Engine, EngineError, Running};
 use crate::log;
 use crate::network;
+use crate::notify;
+use crate::i18n;
 use crate::probe;
 use crate::settings::{Preferences, Settings};
 use crate::tray;
@@ -33,11 +36,12 @@ pub struct Status {
     pub total: usize,
     pub profile: Option<String>,
     pub error: Option<String>,
+    pub since: Option<u64>,
 }
 
 impl Status {
     fn new(phase: Phase) -> Self {
-        Self { phase, step: 0, total: 0, profile: None, error: None }
+        Self { phase, step: 0, total: 0, profile: None, error: None, since: None }
     }
 
     fn connecting(step: usize, total: usize) -> Self {
@@ -45,7 +49,8 @@ impl Status {
     }
 
     fn on(profile: String, step: usize, total: usize) -> Self {
-        Self { profile: Some(profile), step, total, ..Self::new(Phase::On) }
+        let since = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as u64);
+        Self { profile: Some(profile), step, total, since: Some(since), ..Self::new(Phase::On) }
     }
 
     fn failed(error: &EngineError) -> Self {
@@ -68,6 +73,7 @@ pub struct Controller {
     cancel: Mutex<Option<watch::Sender<bool>>>,
     failures: Mutex<u32>,
     demoted: Mutex<Option<String>>,
+    recovering: Mutex<bool>,
 }
 
 const MAX_FAILURES: u32 = 2;
@@ -104,6 +110,7 @@ impl Controller {
             cancel: Mutex::new(None),
             failures: Mutex::new(0),
             demoted: Mutex::new(None),
+            recovering: Mutex::new(false),
         })
     }
 
@@ -194,6 +201,16 @@ impl Controller {
         let mut session = self.session.lock().await;
         let result = self.search(&mut cancel).await;
         *lock(&self.cancel) = None;
+
+        let recovering = std::mem::take(&mut *lock(&self.recovering));
+        if recovering {
+            let labels = i18n::labels(&self.settings().language);
+            match &result {
+                Ok(_) => notify::show(&self.app, labels.restored),
+                Err(Stop::Failed(_)) => notify::show(&self.app, labels.failed),
+                Err(Stop::Cancelled) => {}
+            }
+        }
 
         match result {
             Ok((running, profile)) => {
@@ -286,6 +303,8 @@ impl Controller {
             return;
         }
         log::write("searching for a new setting");
+        *lock(&self.recovering) = true;
+        notify::show(&self.app, i18n::labels(&self.settings().language).lost);
         if limit > 1 {
             *lock(&self.demoted) = self.status().profile;
             self.update(|s| s.profile = None);
