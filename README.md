@@ -83,6 +83,32 @@ Download the latest version from [Releases](../../releases/latest).
 2. Install the .deb from a terminal in the download folder: `sudo apt install ./FreeDPI_*_amd64.deb`. For the AppImage, run `chmod +x FreeDPI_*.AppImage` and open it.
 3. Connect with the power button. On GNOME and KDE, FreeDPI sets the system proxy for you. On other desktops such as Xfce, Firefox picks it up through the GNOME proxy settings, and FreeDPI shows the proxy address (`127.0.0.1:18080`) for apps that need it. Use **Open Discord with FreeDPI** for Discord.
 
+## Linux notes
+
+FreeDPI on Linux uses the same built-in engine as on macOS: a local proxy on `127.0.0.1:18080` that splits the first TLS packet. It needs no root rights and no kernel module.
+
+**Which apps use it automatically.** FreeDPI sets the system proxy through GNOME settings and, on KDE, through the KDE proxy settings. Apps that follow the system proxy pick it up when they start:
+
+| Desktop | Firefox | Chromium, Chrome, Brave | Discord |
+| --- | --- | --- | --- |
+| GNOME | Automatic | Automatic | Open Discord with FreeDPI |
+| KDE Plasma | Automatic | Automatic | Open Discord with FreeDPI |
+| Xfce (Kali default), others | Automatic | Start it with `--proxy-server=http://127.0.0.1:18080` | Open Discord with FreeDPI |
+
+Restart a browser after connecting if it was already open.
+
+**Manual proxy.** While connected, the main screen shows the proxy address. Any app with proxy settings can use it as an HTTP and HTTPS proxy.
+
+**Discord.** The **Open Discord with FreeDPI** button finds Discord installed from the .deb package, a tarball in `/opt`, or Flatpak, closes it, and opens it again through FreeDPI.
+
+**Tray icon.** The tray menu needs a system tray. GNOME needs the AppIndicator extension; Xfce, KDE and most other desktops show it out of the box.
+
+**Start with system** adds `~/.config/autostart/freedpi.desktop`.
+
+**Uninstall.** Remove the FreeDPI package with your package manager (`dpkg -l | grep -i freedpi` shows its name, then `sudo apt remove <name>`), or delete the AppImage. Settings and logs are in `~/.config/com.freedpi.desktop` and `~/.local/share/com.freedpi.desktop`.
+
+**Updates.** The AppImage updates itself like the Windows and macOS versions. For the .deb package, download the new .deb from Releases and install it over the old one.
+
 ## macOS notes
 
 **Keystroke permission prompt.** macOS may show a dialog saying FreeDPI wants to receive keystrokes from any application. Click **Deny**. FreeDPI never reads your keyboard and does not need this permission. The prompt is triggered by the desktop framework the app is built on, not by FreeDPI itself. Denying it does not affect any feature, and macOS stops asking after you deny it.
@@ -165,6 +191,8 @@ FreeDPI is under active development. Bugs are fixed as they are reported, and fi
 
 Planned next: code signing for Windows and macOS, and an Android version.
 
+Linux support is new. If something does not work on your distribution or desktop, please open an issue and mention both.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md). The notes for each version are also shown in the app when an update is available.
@@ -202,6 +230,7 @@ src-tauri/src/
   engine/driver.rs       Windows engine (GoodbyeDPI)
   engine/proxy/          Cross-platform proxy engine (TLS split, DNS over HTTPS)
   engine/sysproxy.rs     macOS system proxy
+  engine/linuxproxy.rs   Linux system proxy (GNOME, KDE)
 src-tauri/resources/     Bundled GoodbyeDPI and WinDivert binaries for Windows
 third_party/             Licenses and checksums of bundled components
 docs/screenshots/        Images used in this README
