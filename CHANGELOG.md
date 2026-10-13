@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.18
+
+- Linux support with .deb and AppImage packages.
+- On Linux, FreeDPI sets the GNOME and KDE system proxy and shows the proxy address for other apps.
+
 ## 0.1.17
 
 - Notifications when FreeDPI connects, disconnects or cannot connect.

@@ -25,6 +25,7 @@ const en = {
   kaspersky: "If Kaspersky is installed, remove it. It blocks FreeDPI.",
   profile: "Using setting {step}",
   connectedFor: "Connected for {time}",
+  proxyHint: "If an app does not open sites, set its proxy to {address}",
   action: {
     connect: "Connect",
     disconnect: "Disconnect",
@@ -107,6 +108,7 @@ const tr: Strings = {
   kaspersky: "Kaspersky yüklüyse kaldır, FreeDPI'ı engelliyor.",
   profile: "{step}. ayar kullanılıyor",
   connectedFor: "{time} süredir bağlı",
+  proxyHint: "Bir uygulamada site açılmazsa proxy olarak {address} gir",
   action: {
     connect: "Bağlan",
     disconnect: "Bağlantıyı kes",
@@ -187,6 +189,7 @@ const ru: Strings = {
   kaspersky: "Если установлен Kaspersky, удалите его: он блокирует FreeDPI.",
   profile: "Используется настройка {step}",
   connectedFor: "Подключено {time}",
+  proxyHint: "Если приложение не открывает сайты, укажите прокси {address}",
   action: {
     connect: "Подключить",
     disconnect: "Отключить",

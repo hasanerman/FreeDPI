@@ -18,6 +18,7 @@ const ui = {
   title: byId("status-title"),
   detail: byId("status-detail"),
   profile: byId("status-profile"),
+  proxy: byId("status-proxy"),
   discord: byId<HTMLButtonElement>("btn-discord"),
   autostartLabel: byId("lbl-autostart"),
   autostart: byId<HTMLInputElement>("chk-autostart"),
@@ -158,7 +159,11 @@ function renderStatus() {
   ui.power.disabled = status.phase === "stopping";
   ui.pending.hidden = !(status.phase === "on" || status.phase === "connecting");
 
-  ui.discord.hidden = !(snapshot.platform === "macos" && status.phase === "on" && settings.targets.includes("discord"));
+  const proxied = snapshot.platform === "macos" || snapshot.platform === "linux";
+  ui.discord.hidden = !(proxied && status.phase === "on" && settings.targets.includes("discord"));
+  const showProxy = snapshot.platform === "linux" && status.phase === "on" && !!status.port;
+  ui.proxy.hidden = !showProxy;
+  ui.proxy.textContent = showProxy ? format(s.proxyHint, { address: `127.0.0.1:${status.port}` }) : "";
   ui.discord.textContent = s.openDiscord;
   ui.power.setAttribute("aria-busy", String(status.phase === "connecting" || status.phase === "stopping"));
 }

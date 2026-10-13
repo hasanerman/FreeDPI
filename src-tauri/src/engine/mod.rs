@@ -14,6 +14,10 @@ pub use proxied::{Engine, Running};
 #[cfg(target_os = "macos")]
 mod sysproxy;
 
+#[cfg(target_os = "linux")]
+#[path = "linuxproxy.rs"]
+mod sysproxy;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum EngineError {
     MissingFiles,

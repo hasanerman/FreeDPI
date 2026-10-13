@@ -149,7 +149,47 @@ mod platform {
     }
 }
 
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(target_os = "linux")]
+mod platform {
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn entry_path() -> Option<PathBuf> {
+        let config = std::env::var_os("XDG_CONFIG_HOME")
+            .map(PathBuf::from)
+            .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))?;
+        Some(config.join("autostart").join("freedpi.desktop"))
+    }
+
+    pub fn enabled() -> bool {
+        entry_path().is_some_and(|p| p.exists())
+    }
+
+    pub fn set(enable: bool) -> Result<(), String> {
+        let path = entry_path().ok_or("HOME is not set")?;
+        if !enable {
+            if path.exists() {
+                fs::remove_file(&path).map_err(|e| e.to_string())?;
+            }
+            return Ok(());
+        }
+        let exe = match std::env::var_os("APPIMAGE") {
+            Some(image) => PathBuf::from(image),
+            None => std::env::current_exe().map_err(|e| e.to_string())?,
+        };
+        let exe = exe.to_string_lossy().replace('"', "");
+        let entry = format!(
+            "[Desktop Entry]\nType=Application\nName=FreeDPI\nExec=\"{exe}\" {arg}\nIcon=freedpi\nX-GNOME-Autostart-enabled=true\nTerminal=false\n",
+            arg = super::TRAY_ARG,
+        );
+        if let Some(dir) = path.parent() {
+            fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+        }
+        fs::write(&path, entry).map_err(|e| e.to_string())
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 mod platform {
     pub fn enabled() -> bool {
         false

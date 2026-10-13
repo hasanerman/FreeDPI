@@ -8,7 +8,7 @@ function initialStatus(phase: string | null): Status {
     case "connecting":
       return { phase: "connecting", step: 2, total: PROFILES.length, profile: null, error: null };
     case "on":
-      return { phase: "on", step: 1, total: PROFILES.length, profile: PROFILES[0], error: null, since: Date.now() - 3725000 };
+      return { phase: "on", step: 1, total: PROFILES.length, profile: PROFILES[0], error: null, since: Date.now() - 3725000, port: 18080 };
     case "error":
       return { phase: "error", step: 0, total: 0, profile: null, error: "no_profile" };
     default:

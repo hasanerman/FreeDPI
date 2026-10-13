@@ -5,13 +5,13 @@
 <h1 align="center">FreeDPI</h1>
 
 <p align="center">
-  One-click DPI bypass for Windows and macOS.<br />
+  One-click DPI bypass for Windows, macOS and Linux.<br />
   Opens Discord and other sites blocked by your internet provider, without a VPN.
 </p>
 
 <p align="center">
   <a href="../../releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/hasanerman/FreeDPI?label=release" /></a>
-  <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-informational" />
+  <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-informational" />
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/hasanerman/FreeDPI" /></a>
 </p>
 
@@ -50,6 +50,7 @@ You press one button. FreeDPI tries its built-in settings one by one, checks tha
 | --- | --- |
 | **Windows** | Windows 10 and 11, 64-bit |
 | **macOS** | macOS 11 Big Sur or later, Apple Silicon and Intel |
+| **Linux** | 64-bit Debian, Ubuntu, Kali and other distributions (.deb or AppImage) |
 | **Sites** | Every site. Discord, YouTube, Roblox and Wattpad are built-in test sites, and you can add your own |
 | **Regions** | Auto, Türkiye, Russia, Other |
 | **Languages** | English, Türkçe, Русский |
@@ -75,6 +76,12 @@ Download the latest version from [Releases](../../releases/latest).
 1. Download `FreeDPI_x.y.z_universal.dmg`, open it and drag FreeDPI into Applications.
 2. The first time you open it, macOS says the developer cannot be verified. Open **System Settings > Privacy & Security** and click **Open Anyway**. This appears because the app is not notarized yet.
 3. Connect with the power button. macOS may ask for your password once so FreeDPI can set the system proxy.
+
+### Linux
+
+1. Download `FreeDPI_x.y.z_amd64.deb` (Debian, Ubuntu, Kali) or `FreeDPI_x.y.z_amd64.AppImage` (any distribution).
+2. Install the .deb from a terminal in the download folder: `sudo apt install ./FreeDPI_*_amd64.deb`. For the AppImage, run `chmod +x FreeDPI_*.AppImage` and open it.
+3. Connect with the power button. On GNOME and KDE, FreeDPI sets the system proxy for you. On other desktops such as Xfce, Firefox picks it up through the GNOME proxy settings, and FreeDPI shows the proxy address (`127.0.0.1:18080`) for apps that need it. Use **Open Discord with FreeDPI** for Discord.
 
 ## macOS notes
 
@@ -112,12 +119,12 @@ The full source code is in this repository, and the bundled third-party binaries
 
 ## How it works
 
-| | Windows | macOS |
+| | Windows | macOS and Linux |
 | --- | --- | --- |
 | Engine | [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) with the WinDivert driver | Built-in engine written in Rust |
 | Scope | All apps, transparently | Apps that use the system proxy, including browsers and Discord |
 | DNS | Redirected to a resolver on a non-standard port | DNS over HTTPS through Cloudflare and Google |
-| Permissions | Administrator, once at launch | Your password, once, to set the system proxy |
+| Permissions | Administrator, once at launch | macOS: your password, once, to set the system proxy. Linux: none |
 
 The macOS engine runs a local proxy on `127.0.0.1:18080`. It splits the first TLS packet (the ClientHello) into several TCP segments or TLS records, so the site name never appears in one piece, and it can send the first segment out of order. The same engine is covered by tests on both platforms in CI.
 

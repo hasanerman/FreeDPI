@@ -24,7 +24,7 @@ impl Engine {
     }
 
     pub fn recover() {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
         let _ = super::sysproxy::disable();
     }
 
@@ -53,7 +53,7 @@ impl Running {
     }
 
     pub async fn activate(&mut self) -> Result<(), EngineError> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
             let port = self.server.port();
             tokio::task::spawn_blocking(move || super::sysproxy::enable(port))
@@ -65,7 +65,7 @@ impl Running {
     }
 
     pub async fn refresh(&mut self) -> Result<(), EngineError> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
             if self.active {
                 let port = self.server.port();
@@ -78,7 +78,7 @@ impl Running {
     }
 
     pub async fn stop(self) {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
             if self.active {
                 let _ = tokio::task::spawn_blocking(super::sysproxy::disable).await;

@@ -37,20 +37,21 @@ pub struct Status {
     pub profile: Option<String>,
     pub error: Option<String>,
     pub since: Option<u64>,
+    pub port: Option<u16>,
 }
 
 impl Status {
     fn new(phase: Phase) -> Self {
-        Self { phase, step: 0, total: 0, profile: None, error: None, since: None }
+        Self { phase, step: 0, total: 0, profile: None, error: None, since: None, port: None }
     }
 
     fn connecting(step: usize, total: usize) -> Self {
         Self { step, total, ..Self::new(Phase::Connecting) }
     }
 
-    fn on(profile: String, step: usize, total: usize) -> Self {
+    fn on(profile: String, step: usize, total: usize, port: Option<u16>) -> Self {
         let since = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as u64);
-        Self { profile: Some(profile), step, total, since: Some(since), ..Self::new(Phase::On) }
+        Self { profile: Some(profile), step, total, since: Some(since), port, ..Self::new(Phase::On) }
     }
 
     fn failed(error: &EngineError) -> Self {
@@ -234,10 +235,11 @@ impl Controller {
 
         match result {
             Ok((running, profile)) => {
+                let port = running.probe_proxy();
                 *session = Some(running);
                 self.update(|s| s.profile = Some(profile.clone()));
                 let number = self.profile_number(&profile);
-                self.set_status(Status::on(profile, number.0, number.1));
+                self.set_status(Status::on(profile, number.0, number.1, port));
             }
             Err(Stop::Cancelled) => self.set_status(Status::new(Phase::Off)),
             Err(Stop::Failed(error)) => self.set_status(Status::failed(&error)),

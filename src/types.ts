@@ -11,6 +11,7 @@ export interface Status {
   profile: string | null;
   error: string | null;
   since?: number | null;
+  port?: number | null;
 }
 
 export interface Settings {

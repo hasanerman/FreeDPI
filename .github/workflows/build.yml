@@ -18,10 +18,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+
+      - if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
       - uses: actions/setup-node@v5
         with:
@@ -92,9 +97,20 @@ jobs:
             args: --target universal-apple-darwin --bundles app,dmg
             artifact: FreeDPI-macos
             path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          - os: ubuntu-22.04
+            args: --bundles deb,appimage
+            artifact: FreeDPI-linux
+            path: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/appimage/*.AppImage
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+
+      - if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
       - uses: actions/setup-node@v5
         with:
