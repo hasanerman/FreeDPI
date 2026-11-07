@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Shows the ping to your first test site on the main screen while connected, updated every 5 seconds.
+- The log uses the same setting numbers as the main screen.
+
 ## 1.0.0
 
 - New Debug section in Settings. Debug mode shows a live log on the main screen.

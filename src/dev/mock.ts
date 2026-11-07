@@ -158,6 +158,9 @@ export function mockBackend(): Backend {
       if (enabled) pushLog(`${new Date().toISOString().slice(0, 19).replace("T", " ")}Z [I] debug mode on`);
       return update({ debug: enabled });
     },
+    async ping() {
+      return status.phase === "on" ? 30 + Math.round(Math.random() * 25) : null;
+    },
     async runDiagnostics() {
       await new Promise((resolve) => window.setTimeout(resolve, 1200));
       return report;

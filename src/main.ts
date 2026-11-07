@@ -86,6 +86,25 @@ const ui = {
 };
 
 const LOG_LIMIT = 200;
+const PING_EVERY = 5000;
+let pingMs: number | null = null;
+let pinging = false;
+
+async function measurePing() {
+  if (status.phase !== "on") {
+    pingMs = null;
+    return;
+  }
+  if (pinging) return;
+  pinging = true;
+  try {
+    pingMs = await backend.ping();
+  } catch {
+    pingMs = null;
+  }
+  pinging = false;
+  renderProfile();
+}
 let logs: string[] = [];
 let report: DiagReport | null = null;
 let diagRunning = false;
@@ -219,6 +238,7 @@ function renderProfile() {
   const parts: string[] = [];
   if (status.since) parts.push(format(s.connectedFor, { time: elapsed(status.since) }));
   if (status.step > 0) parts.push(format(s.profile, { step: status.step }));
+  if (pingMs !== null) parts.push(format(s.ping, { ms: pingMs }));
   ui.profile.textContent = parts.join(" · ");
 }
 
@@ -597,6 +617,8 @@ async function boot() {
   document.documentElement.dataset.platform = snapshot.platform;
 
   backend.onStatus((next) => {
+    if (next.phase !== "on") pingMs = null;
+    else if (status.phase !== "on") window.setTimeout(() => void measurePing(), 500);
     status = next;
     renderStatus();
   });
@@ -621,6 +643,8 @@ async function boot() {
   window.setInterval(() => {
     if (status.phase === "on") renderProfile();
   }, 1000);
+  window.setInterval(() => void measurePing(), PING_EVERY);
+  void measurePing();
   const devParams = new URLSearchParams(location.search);
   openSheet(import.meta.env.DEV && devParams.has("settings"));
   if (import.meta.env.DEV && devParams.has("shot")) document.body.style.width = "380px";

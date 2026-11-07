@@ -64,6 +64,7 @@ fn main() {
             commands::set_notifications,
             commands::set_after_vpn,
             commands::set_debug,
+            commands::ping,
             commands::run_diagnostics,
             commands::get_logs,
             commands::clear_logs,

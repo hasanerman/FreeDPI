@@ -82,6 +82,7 @@ export interface Backend {
   setNotifications(enabled: boolean): Promise<Settings>;
   setAfterVpn(enabled: boolean): Promise<Settings>;
   setDebug(enabled: boolean): Promise<Settings>;
+  ping(): Promise<number | null>;
   runDiagnostics(): Promise<DiagReport>;
   getLogs(): Promise<string[]>;
   clearLogs(): Promise<void>;

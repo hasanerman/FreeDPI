@@ -15,6 +15,7 @@ function tauriBackend(): Backend {
     setNotifications: (enabled) => invoke("set_notifications", { enabled }),
     setAfterVpn: (enabled) => invoke("set_after_vpn", { enabled }),
     setDebug: (enabled) => invoke("set_debug", { enabled }),
+    ping: () => invoke("ping"),
     runDiagnostics: () => invoke("run_diagnostics"),
     getLogs: () => invoke("get_logs"),
     clearLogs: () => invoke("clear_logs"),

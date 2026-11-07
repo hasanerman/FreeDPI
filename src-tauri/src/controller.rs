@@ -188,6 +188,15 @@ impl Controller {
         }
     }
 
+    pub async fn ping(&self) -> Option<u32> {
+        let settings = self.settings();
+        let urls = catalog::target_urls(&settings.targets, &settings.custom);
+        let host = urls
+            .iter()
+            .find_map(|u| reqwest::Url::parse(u).ok().and_then(|u| u.host_str().map(String::from)))?;
+        network::tcp_ping(&host).await
+    }
+
     pub fn set_debug(&self, enabled: bool) -> Settings {
         let settings = self.update(|s| s.debug = enabled);
         log::write(if enabled { "debug mode on" } else { "debug mode off" });
@@ -424,14 +433,15 @@ impl Controller {
                 return Err(Stop::Cancelled);
             }
             self.set_status(Status::connecting(index + 1, total));
-            log::write(format!("trying setting {}/{total}", index + 1));
+            let number = self.profile_number(&profile).0;
+            log::write(format!("try {}/{total}: setting {number}", index + 1));
             let started = std::time::Instant::now();
 
             let mut running = match self.engine.start(&profile, only.as_deref()).await {
                 Ok(running) => running,
                 Err(error) if error.fatal() => return Err(Stop::Failed(error)),
                 Err(error) => {
-                    log::error(format!("setting {} failed to start: {error:?}", index + 1));
+                    log::error(format!("setting {number} failed to start: {error:?}"));
                     continue;
                 }
             };
@@ -450,7 +460,7 @@ impl Controller {
 
             if !reachable || *cancel.borrow() {
                 if !reachable {
-                    log::warn(format!("setting {} did not work ({} ms)", index + 1, started.elapsed().as_millis()));
+                    log::warn(format!("setting {number} did not work ({} ms)", started.elapsed().as_millis()));
                 }
                 running.stop().await;
                 if *cancel.borrow() {
@@ -459,7 +469,7 @@ impl Controller {
                 continue;
             }
 
-            log::write(format!("setting {} works ({} ms)", index + 1, started.elapsed().as_millis()));
+            log::write(format!("setting {number} works ({} ms)", started.elapsed().as_millis()));
             self.update(|s| s.engine_active = true);
             if let Err(error) = running.activate().await {
                 running.stop().await;

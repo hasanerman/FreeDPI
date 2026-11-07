@@ -82,6 +82,11 @@ pub fn disconnect(controller: Ctl<'_>) {
 }
 
 #[tauri::command]
+pub async fn ping(controller: Ctl<'_>) -> Result<Option<u32>, String> {
+    Ok(controller.ping().await)
+}
+
+#[tauri::command]
 pub fn set_debug(enabled: bool, controller: Ctl<'_>) -> Settings {
     controller.set_debug(enabled)
 }

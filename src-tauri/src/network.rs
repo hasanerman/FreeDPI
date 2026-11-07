@@ -17,6 +17,15 @@ pub fn local_address() -> Option<IpAddr> {
     (!ip.is_unspecified()).then_some(ip)
 }
 
+pub async fn tcp_ping(host: &str) -> Option<u32> {
+    let start = Instant::now();
+    let connect = tokio::net::TcpStream::connect((host, 443));
+    match tokio::time::timeout(Duration::from_secs(3), connect).await {
+        Ok(Ok(_)) => Some(start.elapsed().as_millis() as u32),
+        _ => None,
+    }
+}
+
 pub fn online() -> bool {
     local_address().is_some()
 }
