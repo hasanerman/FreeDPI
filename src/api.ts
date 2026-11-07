@@ -14,6 +14,14 @@ function tauriBackend(): Backend {
     setAutostart: (enabled) => invoke("set_autostart", { enabled }),
     setNotifications: (enabled) => invoke("set_notifications", { enabled }),
     setAfterVpn: (enabled) => invoke("set_after_vpn", { enabled }),
+    setDebug: (enabled) => invoke("set_debug", { enabled }),
+    runDiagnostics: () => invoke("run_diagnostics"),
+    getLogs: () => invoke("get_logs"),
+    clearLogs: () => invoke("clear_logs"),
+    saveReport: (text) => invoke("save_report", { text }),
+    onLog: (handler) => {
+      void listen<string>("log", (event) => handler(event.payload));
+    },
     quit: () => invoke("quit"),
     hide: () => getCurrentWindow().hide(),
     onStatus: (handler) => {

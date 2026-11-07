@@ -51,7 +51,17 @@ async fn round(client: &reqwest::Client, urls: &[String]) -> bool {
         .map(|url| {
             let client = client.clone();
             let url = url.clone();
-            tokio::spawn(async move { client.get(url).send().await.is_ok() })
+            tokio::spawn(async move {
+                match client.get(&url).send().await {
+                    Ok(_) => true,
+                    Err(error) => {
+                        let (code, detail) = crate::diag::classify(&error);
+                        let short: String = detail.chars().take(160).collect();
+                        crate::log::warn(format!("probe {url} failed ({code}): {short}"));
+                        false
+                    }
+                }
+            })
         })
         .collect();
 

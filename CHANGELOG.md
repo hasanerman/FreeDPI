@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0
+
+- New Debug section in Settings. Debug mode shows a live log on the main screen.
+- Run diagnostics checks your network, DNS, every test site and the engine, and explains each problem in plain words: DNS blocking, connection resets, timeouts, certificate errors, a VPN or another proxy in the way, Kaspersky, or another DPI tool.
+- The DNS check compares your provider's DNS with secure DNS and flags fake or blocked answers.
+- The site check measures DNS, TCP and HTTPS step by step, directly and through FreeDPI, so you can tell a DPI block from a site that is down.
+- Copy the diagnostics report or save it as a file. Your local address is masked.
+- The log now records every setting tried, how long it took and why a test site failed.
+
 ## 0.1.19
 
 - Updates show up without restarting FreeDPI: it checks every 30 minutes and every time you open the window.

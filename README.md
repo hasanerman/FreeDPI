@@ -125,6 +125,15 @@ Restart a browser after connecting if it was already open.
 
 **Help**, also under **Advanced**, has a button that copies diagnostics (version, settings, status and recent log lines, with no personal data) and a button that opens a new issue on GitHub.
 
+**Debug** is for finding out why something does not open. Turning on **Debug mode** shows a live log under the power button. **Run diagnostics** checks, in one go:
+
+- your network: internet, IPv6, an active VPN, another system proxy,
+- DNS: your provider's answer compared with secure DNS, so fake or blocked answers stand out,
+- every test site, step by step (DNS, TCP, HTTPS) and with timings, directly and through FreeDPI,
+- the engine: GoodbyeDPI and the WinDivert driver on Windows, the local proxy and system proxy on macOS and Linux, plus Kaspersky or other DPI tools that get in the way.
+
+Each problem comes with a short explanation, such as "connection reset: most likely DPI blocking". The report can be copied or saved as a file to attach to an issue. Your local IP address is masked in it.
+
 **After VPN** reconnects FreeDPI on its own when a VPN or another network change has broken the connection. As soon as the VPN is turned off or the network changes again, FreeDPI connects again without a click. It is on by default.
 
 **Notifications** turns the connect, disconnect and reconnect notifications on or off.

@@ -19,6 +19,7 @@ pub struct Settings {
     pub engine_active: bool,
     pub notifications: bool,
     pub after_vpn: bool,
+    pub debug: bool,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -44,6 +45,7 @@ impl Default for Settings {
             engine_active: false,
             notifications: true,
             after_vpn: true,
+            debug: false,
         }
     }
 }

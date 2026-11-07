@@ -5,7 +5,9 @@ use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-const KEEP: usize = 300;
+use tauri::{AppHandle, Emitter};
+
+const KEEP: usize = 500;
 const MAX_FILE: u64 = 512 * 1024;
 
 struct Log {
@@ -18,34 +20,65 @@ fn state() -> &'static Mutex<Log> {
     LOG.get_or_init(|| Mutex::new(Log { path: None, lines: VecDeque::new() }))
 }
 
-pub fn init(dir: PathBuf) {
+fn app() -> &'static OnceLock<AppHandle> {
+    static APP: OnceLock<AppHandle> = OnceLock::new();
+    &APP
+}
+
+pub fn init(dir: PathBuf, handle: &AppHandle) {
     let _ = fs::create_dir_all(&dir);
     let path = dir.join("freedpi.log");
     if fs::metadata(&path).is_ok_and(|m| m.len() > MAX_FILE) {
         let _ = fs::rename(&path, dir.join("freedpi.old.log"));
     }
     state().lock().unwrap_or_else(|e| e.into_inner()).path = Some(path);
+    let _ = app().set(handle.clone());
+}
+
+fn push(level: char, message: &str) {
+    let line = format!("{} [{level}] {message}", timestamp());
+    {
+        let mut log = state().lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(path) = &log.path {
+            if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) {
+                let _ = writeln!(file, "{line}");
+            }
+        }
+        log.lines.push_back(line.clone());
+        while log.lines.len() > KEEP {
+            log.lines.pop_front();
+        }
+    }
+    if let Some(handle) = app().get() {
+        let _ = handle.emit("log", &line);
+    }
 }
 
 pub fn write(message: impl AsRef<str>) {
-    let line = format!("{} {}", timestamp(), message.as_ref());
-    let mut log = state().lock().unwrap_or_else(|e| e.into_inner());
-    if let Some(path) = &log.path {
-        if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) {
-            let _ = writeln!(file, "{line}");
-        }
-    }
-    log.lines.push_back(line);
-    while log.lines.len() > KEEP {
-        log.lines.pop_front();
-    }
+    push('I', message.as_ref());
+}
+
+pub fn warn(message: impl AsRef<str>) {
+    push('W', message.as_ref());
+}
+
+pub fn error(message: impl AsRef<str>) {
+    push('E', message.as_ref());
 }
 
 pub fn recent() -> Vec<String> {
     state().lock().unwrap_or_else(|e| e.into_inner()).lines.iter().cloned().collect()
 }
 
-fn timestamp() -> String {
+pub fn clear() {
+    let mut log = state().lock().unwrap_or_else(|e| e.into_inner());
+    log.lines.clear();
+    if let Some(path) = &log.path {
+        let _ = fs::write(path, b"");
+    }
+}
+
+pub fn timestamp() -> String {
     let secs = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs()) as i64;
     let (days, rest) = (secs.div_euclid(86_400), secs.rem_euclid(86_400));
     let z = days + 719_468;
@@ -72,7 +105,10 @@ mod tests {
     #[test]
     fn keeps_recent_lines() {
         write("hello");
-        assert!(recent().iter().any(|l| l.ends_with(" hello")));
+        warn("careful");
+        let lines = recent();
+        assert!(lines.iter().any(|l| l.ends_with(" [I] hello")));
+        assert!(lines.iter().any(|l| l.ends_with(" [W] careful")));
         assert_eq!(timestamp().len(), 20);
     }
 }

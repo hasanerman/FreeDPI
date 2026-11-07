@@ -51,6 +51,7 @@
         <p class="detail" id="status-detail" aria-live="polite"></p>
         <p class="profile" id="status-profile"></p>
         <p class="profile" id="status-proxy" hidden></p>
+        <div class="logview" id="logview" hidden></div>
         <button class="pill" id="btn-discord" type="button" hidden></button>
       </main>
 
@@ -136,6 +137,29 @@
                 <input class="switch" id="chk-notifications" type="checkbox" />
               </label>
               <p class="hint" id="lbl-notifications-hint"></p>
+            </div>
+          </details>
+
+          <details class="acc" id="acc-debug">
+            <summary>
+              <span id="lbl-debug"></span>
+              <span class="val"><span id="val-debug"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
+            </summary>
+            <div class="acc-body">
+              <label class="toggle">
+                <span id="lbl-debug-toggle"></span>
+                <input class="switch" id="chk-debug" type="checkbox" />
+              </label>
+              <p class="hint" id="lbl-debug-hint"></p>
+              <div class="tools">
+                <button class="tool primary" id="btn-run-diag" type="button"></button>
+              </div>
+              <div class="tools">
+                <button class="tool" id="btn-copy-report" type="button" disabled></button>
+                <button class="tool" id="btn-save-report" type="button" disabled></button>
+                <button class="tool" id="btn-clear-logs" type="button"></button>
+              </div>
+              <div class="report" id="report" hidden></div>
             </div>
           </details>
 

@@ -5,6 +5,7 @@ mod autostart;
 mod catalog;
 mod commands;
 mod controller;
+mod diag;
 mod engine;
 mod i18n;
 mod log;
@@ -32,7 +33,7 @@ fn main() {
         .manage(updater::Pending::default())
         .setup(move |app| {
             if let Ok(dir) = app.path().app_log_dir() {
-                log::init(dir);
+                log::init(dir, app.handle());
             }
             log::write(format!("FreeDPI {} started on {}", env!("CARGO_PKG_VERSION"), std::env::consts::OS));
             updater::watch(app.handle().clone());
@@ -62,6 +63,11 @@ fn main() {
             commands::set_autostart,
             commands::set_notifications,
             commands::set_after_vpn,
+            commands::set_debug,
+            commands::run_diagnostics,
+            commands::get_logs,
+            commands::clear_logs,
+            commands::save_report,
             commands::quit,
             commands::install_update,
             commands::open_discord,

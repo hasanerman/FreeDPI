@@ -8,6 +8,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::{watch, Mutex as AsyncMutex};
 
 use crate::autostart;
+use crate::diag;
 use crate::catalog;
 use crate::engine::{Engine, EngineError, Running};
 use crate::log;
@@ -187,6 +188,37 @@ impl Controller {
         }
     }
 
+    pub fn set_debug(&self, enabled: bool) -> Settings {
+        let settings = self.update(|s| s.debug = enabled);
+        log::write(if enabled { "debug mode on" } else { "debug mode off" });
+        self.publish();
+        settings
+    }
+
+    pub async fn run_diagnostics(&self) -> diag::Report {
+        let settings = self.settings();
+        let status = self.status();
+        log::write("diagnostics started");
+        let urls = catalog::target_urls(&settings.targets, &settings.custom);
+        let mut history = log::recent();
+        let skip = history.len().saturating_sub(60);
+        history.drain(..skip);
+        let ctx = diag::Context {
+            urls: urls.clone(),
+            proxy_port: self.proxy_port().await,
+            connected: status.phase == Phase::On,
+            summary: vec![
+                format!("status: {:?}, setting {}/{}", status.phase, status.step, status.total),
+                format!("region: {:?}, only test sites: {}", settings.region, settings.selective),
+                format!("test sites: {}", urls.join(", ")),
+            ],
+            history,
+        };
+        let report = diag::run(ctx).await;
+        log::write("diagnostics finished");
+        report
+    }
+
     pub fn set_after_vpn(&self, enabled: bool) -> Settings {
         let settings = self.update(|s| s.after_vpn = enabled);
         self.publish();
@@ -329,10 +361,13 @@ impl Controller {
             let mut failures = lock(&self.failures);
             if ok {
                 *failures = 0;
+                if settings.debug {
+                    log::write("health check ok");
+                }
                 return;
             }
             *failures += 1;
-            log::write(format!("health check failed ({}/{limit})", *failures));
+            log::warn(format!("health check failed ({}/{limit})", *failures));
             if *failures < limit {
                 return;
             }
@@ -389,12 +424,14 @@ impl Controller {
                 return Err(Stop::Cancelled);
             }
             self.set_status(Status::connecting(index + 1, total));
+            log::write(format!("trying setting {}/{total}", index + 1));
+            let started = std::time::Instant::now();
 
             let mut running = match self.engine.start(&profile, only.as_deref()).await {
                 Ok(running) => running,
                 Err(error) if error.fatal() => return Err(Stop::Failed(error)),
                 Err(error) => {
-                    log::write(format!("setting {} failed to start: {error:?}", index + 1));
+                    log::error(format!("setting {} failed to start: {error:?}", index + 1));
                     continue;
                 }
             };
@@ -413,7 +450,7 @@ impl Controller {
 
             if !reachable || *cancel.borrow() {
                 if !reachable {
-                    log::write(format!("setting {} did not work", index + 1));
+                    log::warn(format!("setting {} did not work ({} ms)", index + 1, started.elapsed().as_millis()));
                 }
                 running.stop().await;
                 if *cancel.borrow() {
@@ -422,6 +459,7 @@ impl Controller {
                 continue;
             }
 
+            log::write(format!("setting {} works ({} ms)", index + 1, started.elapsed().as_millis()));
             self.update(|s| s.engine_active = true);
             if let Err(error) = running.activate().await {
                 running.stop().await;

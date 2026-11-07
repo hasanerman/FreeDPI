@@ -25,6 +25,25 @@ export interface Settings {
   engineActive: boolean;
   notifications: boolean;
   afterVpn: boolean;
+  debug: boolean;
+}
+
+export type DiagLevel = "ok" | "info" | "warn" | "fail";
+
+export interface DiagItem {
+  level: DiagLevel;
+  text: string;
+  hint: string | null;
+}
+
+export interface DiagSection {
+  id: string;
+  items: DiagItem[];
+}
+
+export interface DiagReport {
+  sections: DiagSection[];
+  text: string;
 }
 
 export interface Preferences {
@@ -62,6 +81,12 @@ export interface Backend {
   setAutostart(enabled: boolean): Promise<Settings>;
   setNotifications(enabled: boolean): Promise<Settings>;
   setAfterVpn(enabled: boolean): Promise<Settings>;
+  setDebug(enabled: boolean): Promise<Settings>;
+  runDiagnostics(): Promise<DiagReport>;
+  getLogs(): Promise<string[]>;
+  clearLogs(): Promise<void>;
+  saveReport(text: string): Promise<string>;
+  onLog(handler: (line: string) => void): void;
   quit(): Promise<void>;
   hide(): Promise<void>;
   onStatus(handler: (status: Status) => void): void;

@@ -82,6 +82,41 @@ pub fn disconnect(controller: Ctl<'_>) {
 }
 
 #[tauri::command]
+pub fn set_debug(enabled: bool, controller: Ctl<'_>) -> Settings {
+    controller.set_debug(enabled)
+}
+
+#[tauri::command]
+pub async fn run_diagnostics(controller: Ctl<'_>) -> Result<crate::diag::Report, String> {
+    Ok(controller.run_diagnostics().await)
+}
+
+#[tauri::command]
+pub fn get_logs() -> Vec<String> {
+    crate::log::recent()
+}
+
+#[tauri::command]
+pub fn clear_logs() {
+    crate::log::clear();
+}
+
+#[tauri::command]
+pub fn save_report(text: String, app: AppHandle) -> Result<String, String> {
+    use tauri::Manager;
+    let dir = app
+        .path()
+        .download_dir()
+        .or_else(|_| app.path().desktop_dir())
+        .or_else(|_| app.path().home_dir())
+        .map_err(|e| e.to_string())?;
+    let stamp: String = crate::log::timestamp().chars().filter(|c| c.is_ascii_digit()).collect();
+    let path = dir.join(format!("FreeDPI-report-{stamp}.txt"));
+    std::fs::write(&path, text).map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
 pub fn set_after_vpn(enabled: bool, controller: Ctl<'_>) -> Settings {
     controller.set_after_vpn(enabled)
 }

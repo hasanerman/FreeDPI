@@ -1,6 +1,6 @@
 import { createBackend } from "./api";
 import { format, languages, resolveLanguage, strings } from "./i18n";
-import type { Backend, Language, Preferences, Region, Settings, Snapshot, Status, UpdateInfo } from "./types";
+import type { Backend, DiagReport, Language, Preferences, Region, Settings, Snapshot, Status, UpdateInfo } from "./types";
 
 const REGIONS: Region[] = ["auto", "turkey", "russia", "other"];
 const THEMES = ["system", "light", "dark"] as const;
@@ -72,7 +72,86 @@ const ui = {
   vpnLabel: byId("lbl-vpn-toggle"),
   vpnHint: byId("lbl-vpn-hint"),
   vpn: byId<HTMLInputElement>("chk-vpn"),
+  logview: byId("logview"),
+  debugTitle: byId("lbl-debug"),
+  debugValue: byId("val-debug"),
+  debugLabel: byId("lbl-debug-toggle"),
+  debugHint: byId("lbl-debug-hint"),
+  debug: byId<HTMLInputElement>("chk-debug"),
+  runDiag: byId<HTMLButtonElement>("btn-run-diag"),
+  copyReport: byId<HTMLButtonElement>("btn-copy-report"),
+  saveReport: byId<HTMLButtonElement>("btn-save-report"),
+  clearLogs: byId<HTMLButtonElement>("btn-clear-logs"),
+  reportView: byId("report"),
 };
+
+const LOG_LIMIT = 200;
+let logs: string[] = [];
+let report: DiagReport | null = null;
+let diagRunning = false;
+
+function logClass(line: string): string {
+  if (line.includes(" [E] ")) return "log-e";
+  if (line.includes(" [W] ")) return "log-w";
+  return "log-i";
+}
+
+function renderLogs() {
+  const visible = settings.debug;
+  ui.app.toggleAttribute("data-debug", visible);
+  ui.logview.hidden = !visible;
+  if (!visible) return;
+  const stick = ui.logview.scrollTop + ui.logview.clientHeight >= ui.logview.scrollHeight - 8;
+  ui.logview.replaceChildren(
+    ...logs.slice(-80).map((line) => {
+      const row = document.createElement("div");
+      row.className = `log-line ${logClass(line)}`;
+      row.textContent = line.replace(/^\d{4}-\d{2}-\d{2} /, "").replace(/Z \[[IWE]\] /, " ");
+      return row;
+    }),
+  );
+  if (stick) ui.logview.scrollTop = ui.logview.scrollHeight;
+}
+
+function renderReport() {
+  const s = text();
+  ui.runDiag.textContent = diagRunning ? s.diagRunning : s.runDiagnostics;
+  ui.runDiag.disabled = diagRunning;
+  ui.copyReport.textContent = ui.copyReport.classList.contains("done") ? s.copied : s.copyReport;
+  ui.saveReport.textContent = s.saveReport;
+  ui.clearLogs.textContent = s.clearLogs;
+  ui.copyReport.disabled = report === null;
+  ui.saveReport.disabled = report === null;
+  ui.reportView.hidden = report === null;
+  if (!report) return;
+  ui.reportView.replaceChildren(
+    ...report.sections.flatMap((section) => {
+      const title = document.createElement("h4");
+      title.textContent = s.diagSections[section.id] ?? section.id;
+      const rows = section.items.map((entry) => {
+        const row = document.createElement("div");
+        row.className = `diag ${entry.level}`;
+        const dot = document.createElement("span");
+        dot.className = "diag-dot";
+        const body = document.createElement("div");
+        const main = document.createElement("div");
+        main.className = "diag-text";
+        main.textContent = entry.text;
+        body.append(main);
+        const hint = entry.hint ? s.hints[entry.hint] : "";
+        if (hint) {
+          const note = document.createElement("div");
+          note.className = "diag-hint";
+          note.textContent = hint;
+          body.append(note);
+        }
+        row.append(dot, body);
+        return row;
+      });
+      return [title, ...rows];
+    }),
+  );
+}
 
 function storedTheme(): Theme {
   try {
@@ -246,6 +325,13 @@ function renderSettings() {
   ui.regionHint.textContent = s.regionHint;
   ui.valRegion.textContent = s.regions[settings.region];
   choices(ui.region, REGIONS.map((id) => ({ id, label: s.regions[id] })), settings.region, (region) => void save({ region }));
+  ui.debugTitle.textContent = s.debugTitle;
+  ui.debugValue.textContent = settings.debug ? s.on : s.off;
+  ui.debugLabel.textContent = s.debugToggle;
+  ui.debugHint.textContent = s.debugHint;
+  ui.debug.checked = settings.debug;
+  renderReport();
+  renderLogs();
   ui.vpnTitle.textContent = s.afterVpn;
   ui.vpnValue.textContent = settings.afterVpn ? s.on : s.off;
   ui.vpnLabel.textContent = s.afterVpnToggle;
@@ -413,6 +499,50 @@ function bind() {
     }, 2500);
   });
   ui.selective.addEventListener("change", () => void save({ selective: ui.selective.checked }));
+  ui.debug.addEventListener("change", async () => {
+    settings = await backend.setDebug(ui.debug.checked);
+    if (settings.debug) logs = (await backend.getLogs()).slice(-LOG_LIMIT);
+    render();
+  });
+  ui.runDiag.addEventListener("click", async () => {
+    diagRunning = true;
+    renderReport();
+    try {
+      report = await backend.runDiagnostics();
+    } catch {
+      flash(text().diagError);
+    }
+    diagRunning = false;
+    renderReport();
+  });
+  ui.copyReport.addEventListener("click", async () => {
+    if (!report) return;
+    try {
+      await navigator.clipboard.writeText(report.text);
+      ui.copyReport.classList.add("done");
+      renderReport();
+      window.setTimeout(() => {
+        ui.copyReport.classList.remove("done");
+        renderReport();
+      }, 2000);
+    } catch {
+      flash(text().copyFailed);
+    }
+  });
+  ui.saveReport.addEventListener("click", async () => {
+    if (!report) return;
+    try {
+      const path = await backend.saveReport(report.text);
+      flash(format(text().savedTo, { path }));
+    } catch {
+      flash(text().saveFailed);
+    }
+  });
+  ui.clearLogs.addEventListener("click", async () => {
+    await backend.clearLogs();
+    logs = [];
+    renderLogs();
+  });
   ui.vpn.addEventListener("change", async () => {
     settings = await backend.setAfterVpn(ui.vpn.checked);
     render();
@@ -476,6 +606,12 @@ async function boot() {
     renderStatus();
     renderUpdate();
   });
+  backend.onLog((line) => {
+    logs.push(line);
+    if (logs.length > LOG_LIMIT) logs = logs.slice(-LOG_LIMIT);
+    if (settings.debug) renderLogs();
+  });
+  if (settings.debug) logs = (await backend.getLogs()).slice(-LOG_LIMIT);
   backend.onUpdate((next) => {
     update = next;
     renderUpdate();

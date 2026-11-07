@@ -1,6 +1,6 @@
 [package]
 name = "freedpi"
-version = "0.1.19"
+version = "1.0.0"
 description = "One-click DPI bypass for Windows and macOS"
 authors = ["FreeDPI contributors"]
 license = "GPL-3.0-only"

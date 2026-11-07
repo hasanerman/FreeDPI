@@ -908,3 +908,151 @@ body.ready .app {
     transition-duration: 0s !important;
   }
 }
+
+.app[data-debug] .dial {
+  width: 132px;
+  height: 132px;
+}
+
+.app[data-debug] .power {
+  inset: 12px;
+}
+
+.app[data-debug] .power svg {
+  width: 30px;
+  height: 30px;
+}
+
+.app[data-debug] .detail {
+  min-height: 0;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.app[data-debug] .home {
+  justify-content: flex-start;
+  min-height: 0;
+  padding-top: 6px;
+}
+
+.logview {
+  width: 100%;
+  flex: 1;
+  min-height: 90px;
+  max-height: 170px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  overflow-y: auto;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--soft);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  font-size: 10.5px;
+  line-height: 15px;
+  text-align: left;
+  user-select: text;
+}
+
+.log-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-w {
+  color: #b45309;
+}
+
+.log-e {
+  color: var(--red);
+}
+
+.tool.primary {
+  border-color: var(--green);
+  background: var(--green);
+  color: #ffffff;
+}
+
+.tool.primary:hover {
+  background: var(--green-deep);
+  color: #ffffff;
+}
+
+.tool:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.report {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--surface);
+  user-select: text;
+}
+
+.report h4 {
+  margin: 10px 0 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.report h4:first-child {
+  margin-top: 0;
+}
+
+.diag {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.diag-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.diag.ok .diag-dot {
+  background: var(--green);
+}
+
+.diag.warn .diag-dot {
+  background: #d97706;
+}
+
+.diag.fail .diag-dot {
+  background: var(--red);
+}
+
+.diag-text {
+  color: var(--text);
+  font-size: 11.5px;
+  line-height: 16px;
+  word-break: break-word;
+}
+
+.diag-hint {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .log-w {
+    color: #fbbf24;
+  }
+}
+
+:root[data-theme="dark"] .log-w {
+  color: #fbbf24;
+}
