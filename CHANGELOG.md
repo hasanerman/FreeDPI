@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Other apps can hand a blocked site to FreeDPI with `--add-site <domain>`: the site is added to your list and FreeDPI connects, or reconnects if it was already on. kestrel uses this for its "Open in FreeDPI" button.
+
 ## 1.0.1
 
 - Shows the ping to your first test site on the main screen while connected, updated every 5 seconds.
