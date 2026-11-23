@@ -87,6 +87,21 @@ impl Settings {
         self.custom = custom;
     }
 
+    pub fn add_site(&mut self, domain: &str) -> bool {
+        if let Some(id) = catalog::target_for(domain) {
+            if self.targets.iter().any(|t| t == id) {
+                return false;
+            }
+            self.targets.push(id.to_string());
+            return true;
+        }
+        if self.custom.iter().any(|d| d == domain) {
+            return false;
+        }
+        self.custom.push(domain.to_string());
+        true
+    }
+
     pub fn set_language(&mut self, lang: &str) {
         let lang = lang.to_ascii_lowercase();
         self.language = if lang.starts_with("tr") {
@@ -103,6 +118,18 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn adds_sites_once() {
+        let mut settings = Settings::default();
+        settings.targets.clear();
+        assert!(settings.add_site("discord.com"));
+        assert_eq!(settings.targets, vec!["discord"]);
+        assert!(!settings.add_site("discord.com"));
+        assert!(settings.add_site("example.org"));
+        assert!(!settings.add_site("example.org"));
+        assert_eq!(settings.custom, vec!["example.org"]);
+    }
 
     #[test]
     fn preferences_are_sanitized() {
