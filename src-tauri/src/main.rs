@@ -24,10 +24,18 @@ use tauri::{Manager, RunEvent, WindowEvent};
 use controller::Controller;
 
 fn main() {
-    let start_in_tray = std::env::args().any(|arg| arg == autostart::TRAY_ARG);
+    let args: Vec<String> = std::env::args().collect();
+    let requested_site = catalog::site_argument(&args);
+    let start_in_tray = requested_site.is_none() && args.iter().any(|arg| arg == autostart::TRAY_ARG);
 
     let app = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_window(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            tray::show_window(app);
+            if let (Some(site), Some(controller)) = (catalog::site_argument(&args), app.try_state::<Arc<Controller>>()) {
+                let controller = controller.inner().clone();
+                tauri::async_runtime::spawn(async move { controller.open_site(&site).await });
+            }
+        }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
         .manage(updater::Pending::default())
@@ -41,7 +49,10 @@ fn main() {
             tray::create(app.handle(), &controller.settings())?;
             app.manage(controller.clone());
             network::watch(controller.clone());
-            if start_in_tray {
+            if let Some(site) = requested_site.clone() {
+                tray::show_window(app.handle());
+                tauri::async_runtime::spawn(async move { controller.open_site(&site).await });
+            } else if start_in_tray {
                 tauri::async_runtime::spawn(async move { controller.connect().await });
             } else {
                 tray::show_window(app.handle());

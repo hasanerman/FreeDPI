@@ -166,6 +166,26 @@ impl Controller {
         settings
     }
 
+    pub async fn open_site(&self, input: &str) {
+        let Some(domain) = catalog::normalize_domain(input) else {
+            log::warn("ignored an invalid site from another app");
+            return;
+        };
+        let mut changed = false;
+        self.update(|s| changed = s.add_site(&domain));
+        self.publish();
+        log::write(format!("site {domain} requested by another app{}", if changed { ", added" } else { "" }));
+        *lock(&self.wanted) = true;
+        match self.status().phase {
+            Phase::Off | Phase::Error => self.connect().await,
+            Phase::On if changed => {
+                self.disconnect().await;
+                self.connect().await;
+            }
+            _ => {}
+        }
+    }
+
     pub fn save_preferences(&self, preferences: Preferences) -> Settings {
         let settings = self.update(|s| s.apply(preferences));
         self.publish();
