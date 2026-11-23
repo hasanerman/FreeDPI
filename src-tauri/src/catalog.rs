@@ -153,9 +153,47 @@ pub fn normalize_domain(input: &str) -> Option<String> {
     valid.then(|| host.to_string())
 }
 
+pub const ADD_SITE_ARG: &str = "--add-site";
+
+pub fn site_argument(args: &[String]) -> Option<String> {
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        if let Some(value) = arg.strip_prefix(ADD_SITE_ARG).and_then(|rest| rest.strip_prefix('=')) {
+            return normalize_domain(value);
+        }
+        if arg == ADD_SITE_ARG {
+            return iter.next().and_then(|value| normalize_domain(value));
+        }
+    }
+    None
+}
+
+pub fn target_for(domain: &str) -> Option<&'static str> {
+    TARGETS
+        .iter()
+        .find(|t| t.domains.iter().any(|d| domain == *d || domain.ends_with(&format!(".{d}"))))
+        .map(|t| t.id)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_site_argument() {
+        let args = |list: &[&str]| list.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(site_argument(&args(&["freedpi.exe", "--add-site", "Discord.com"])).as_deref(), Some("discord.com"));
+        assert_eq!(site_argument(&args(&["freedpi.exe", "--add-site=https://example.org/x"])).as_deref(), Some("example.org"));
+        assert_eq!(site_argument(&args(&["freedpi.exe", "--add-site", "not a domain"])), None);
+        assert_eq!(site_argument(&args(&["freedpi.exe", "--tray"])), None);
+    }
+
+    #[test]
+    fn maps_known_domains_to_targets() {
+        assert_eq!(target_for("discord.com"), Some("discord"));
+        assert_eq!(target_for("media.discordapp.net").is_some(), TARGETS.iter().any(|t| t.domains.contains(&"discordapp.net")));
+        assert_eq!(target_for("example.org"), None);
+    }
 
     #[test]
     fn domains_are_normalized() {
